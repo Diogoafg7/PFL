@@ -1,3 +1,6 @@
+consult('trike.pl').
+
+
 :- dynamic tabuleiro/2.
 :- dynamic jogador_atual/1.
 
@@ -19,11 +22,29 @@ dificuldade(computador, facil).
 dificuldade(computador, medio).
 dificuldade(computador, dificil).
 
-% Iniciar o jogo
-iniciar_jogo(ModoJogo, TamanhoTabuleiro, Dificuldade) :-
-    assert(tabuleiro([], TamanhoTabuleiro)), % Inicializar tabuleiro vazio
-    assert(jogador_atual(preto)), % O jogador preto começa
-    menu_jogo(ModoJogo, TamanhoTabuleiro, Dificuldade).
+% Iniciar partida no modo Player vs. Player.
+iniciar_partida(pvp, TamanhoTabuleiro, Dificuldade) :-
+    retractall(tabuleiro(_, _)),  % Limpar tabuleiro anterior se houver.
+    assert(tabuleiro([], TamanhoTabuleiro)),  % Inicializar tabuleiro vazio.
+    assert(jogador_atual(preto)),  % O jogador preto começa.
+    exibir_tabuleiro,
+    jogar_pvp.
+
+% Iniciar partida no modo Player vs. Computador.
+iniciar_partida(pvc, TamanhoTabuleiro, Dificuldade) :-
+    retractall(tabuleiro(_, _)),  % Limpar tabuleiro anterior se houver.
+    assert(tabuleiro([], TamanhoTabuleiro)),  % Inicializar tabuleiro vazio.
+    assert(jogador_atual(preto)),  % O jogador preto começa.
+    exibir_tabuleiro,
+    (jogador_atual(preto) -> jogar_pvp; jogar_computador(Dificuldade)).
+
+% Iniciar partida no modo Computador vs. Computador.
+iniciar_partida(cvc, TamanhoTabuleiro, Dificuldade) :-
+    retractall(tabuleiro(_, _)),  % Limpar tabuleiro anterior se houver.
+    assert(tabuleiro([], TamanhoTabuleiro)),  % Inicializar tabuleiro vazio.
+    assert(jogador_atual(preto)),  % O jogador preto começa.
+    exibir_tabuleiro,
+    jogar_computador_vs_computador(Dificuldade).
 
 % Menu do Jogo
 menu_jogo(ModoJogo, TamanhoTabuleiro, Dificuldade) :-
@@ -65,9 +86,9 @@ escolher_modo_jogo(NovoModo) :-
     write('Opção: '),
     read(Opcao),
     (
-        Opcao = 1 -> NovoModo = pvp;
-        Opcao = 2 -> NovoModo = pvc;
-        Opcao = 3 -> NovoModo = cvc
+        Opcao == 1 -> NovoModo = pvp;
+        Opcao == 2 -> NovoModo = pvc;
+        Opcao == 3 -> NovoModo = cvc
     ).
 
 escolher_tamanho_tabuleiro(NovoTamanho) :-
@@ -103,7 +124,3 @@ iniciar_partida(ModoJogo, TamanhoTabuleiro, Dificuldade) :-
     assert(jogador_atual(preto)), % O jogador preto começa
     jogar_partida(ModoJogo, Dificuldade).
 
-% Outras regras e lógica do jogo aqui...
-
-% Exemplo de uso:
-% ?- iniciar_jogo(pvp, 5, facil).

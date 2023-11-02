@@ -1,99 +1,72 @@
+consult('menu.pl').
+
 % Estruturas de Dados
 % Estrutura de dados para representar as cores das peças.
 piece(white).
 piece(black).
 
+% Estrutura de dados para representar a posição de uma célula no tabuleiro triangular.
+cell(X, Y).
+
+% Estrutura de dados para representar os modos de jogo.
+game_mode(pvp).  % Player vs. Player
+game_mode(pvc).  % Player vs. Computador
+game_mode(cvc).  % Computador vs. Computador
+
+
 % Estrutura de dados para representar o estado do jogo.
 % game(Board, PawnPos, Player, WhiteScore, BlackScore)
-% Board: Tabuleiro representado por uma lista de listas.
-% PawnPos: Posição atual do pino neutro [X, Y].
+% Board: Tabuleiro representado por uma lista de células.
+% PawnPos: Posição atual do pino neutro cell(X, Y).
 % Player: Jogador atual (white ou black).
 % WhiteScore: Pontuação do jogador branco.
 % BlackScore: Pontuação do jogador preto.
-game(Board, [X, Y], Player, WhiteScore, BlackScore).
+game(Board, cell(X, Y), Player, WhiteScore, BlackScore).
 
 % Configuração Inicial
-initialize_game(game(Board, [14, 14], white, 0, 0)):-
-    create_empty_board(28, Board).
+initialize_game(game(Board, cell(14, 14), white, 0, 0)):-
+    create_empty_board(14, 14, Board).
 
-% Inicializa o tabuleiro com um tamanho especificado, preenchendo-o com peças vazias.
-create_empty_board(Size, Board):-
-    create_empty_board(Size, Size, [], Board).
-
-create_empty_board(0, _, Board, Board).
-create_empty_board(Rows, Size, PartialBoard, Board):-
-    create_row(Size, Row),
-    NewRows is Rows - 1,
-    create_empty_board(NewRows, Size, [Row | PartialBoard], Board).
-
-create_row(0, []).
-create_row(Size, [empty | Rest]):-
-    NewSize is Size - 1,
-    create_row(NewSize, Rest).
+% Inicializa o tabuleiro com um tamanho especificado.
+create_empty_board(0, _, []).
+create_empty_board(Size, Rows, [cell(Size, Rows) | Rest]) :-
+    NextRows is Rows - 1,
+    create_empty_board(Size, NextRows, Rest).
 
 % Movimento do Pino Neutro
-move_pawn(game(Board, [X, Y], Player, WhiteScore, BlackScore), NewGame):-
+move_pawn(game(Board, cell(X, Y), Player, WhiteScore, BlackScore), NewGame):-
     % Verifica se o movimento é válido (espaço vazio e direção desobstruída).
     valid_move(X, Y, NewX, NewY, Board),
     % Atualiza o tabuleiro com a nova posição do pino neutro.
-    update_board(Board, X, Y, NewX, NewY, UpdatedBoard),
-    % Atualiza o estado do jogo com a nova posição e o próximo jogador.
-    switch_player(Player, NextPlayer),
-    NewGame = game(UpdatedBoard, [NewX, NewY], NextPlayer, WhiteScore, BlackScore).
+    NewGame = game(Board, cell(NewX, NewY), Player, WhiteScore, BlackScore).
 
 % Verifica se o movimento é válido.
 valid_move(X, Y, NewX, NewY, Board):-
-    % Verifica se as coordenadas de destino estão dentro dos limites do tabuleiro.
-    valid_coordinates(NewX, NewY),
-    % Obtém o conteúdo do espaço de destino.
-    get_cell(Board, NewX, NewY, Cell),
-    % Verifica se o espaço de destino está vazio.
-    Cell = empty,
-    % Verifica se a direção está desobstruída.
-    is_direction_clear(X, Y, NewX, NewY, Board).
-
-% Verifica se as coordenadas estão dentro dos limites do tabuleiro.
-valid_coordinates(X, Y):-
-    X >= 1,
-    X =< 28,
-    Y >= 1,
-    Y =< 28.
-
-% Obtém o conteúdo de uma célula no tabuleiro.
-get_cell(Board, X, Y, Cell):-
-    nth1(Y, Board, Row),
-    nth1(X, Row, Cell).
-
-% Verifica se a direção está desobstruída.
-is_direction_clear(X, Y, NewX, NewY, Board):-
-    % Verifica se as coordenadas são horizontais, verticais ou diagonais.
-    (abs(NewX - X) =:= abs(NewY - Y) ; NewX =:= X ; NewY =:= Y),
-    % Chama um predicado auxiliar para verificar as células intermediárias.
-    is_direction_clear_aux(X, Y, NewX, NewY, Board).
-
-% Predicado auxiliar para verificar as células intermediárias.
-is_direction_clear_aux(X, Y, NewX, NewY, Board):-
-    % Calcula os passos entre as coordenadas atuais e as coordenadas de destino.
-    StepX is sign(NewX - X),
-    StepY is sign(NewY - Y),
     % Calcula as coordenadas da próxima célula na direção.
-    NextX is X + StepX,
-    NextY is Y + StepY,
-    % Obtém o conteúdo da próxima célula.
-    get_cell(Board, NextX, NextY, Cell),
-    % Verifica se a próxima célula está vazia (ou seja, sem peças).
-    Cell = empty,
-    % Recursivamente verifica a próxima célula.
-    is_direction_clear_aux(NextX, NextY, NewX, NewY, Board).
+    adjacent_position(X, Y, NewX, NewY),
+    % Verifica se a célula de destino está vazia.
+    \+ occupied_cell(NewX, NewY, Board).
 
-%///////////////////////////////////////////////////////////CONTINUAR AQUI///////////////////7
+% Verifica se a célula está ocupada.
+occupied_cell(X, Y, Board):-
+    member(cell(X, Y), Board).
 
-% Atualiza o tabuleiro com a nova posição do pino neutro.
-update_board(Board, X, Y, NewX, NewY, UpdatedBoard):-
-    % Implemente a lógica para atualizar o tabuleiro.
+% Define as posições adjacentes a uma célula no tabuleiro triangular.
+adjacent_position(X, Y, NewX, NewY):-
+    % Possui 6 vizinhos adjacentes (hexagonais).
+    (
+        (NewX is X - 1, NewY is Y);
+        (NewX is X + 1, NewY is Y);
+        (NewX is X, NewY is Y - 1);
+        (NewX is X, NewY is Y + 1);
+        (NewX is X - 1, NewY is Y - 1);
+        (NewX is X + 1, NewY is Y + 1)
+    ).
+
+% Restante do seu código permanece inalterado.
 
 % Colocação de Cubos
-place_cube(game(Board, [X, Y], Player, WhiteScore, BlackScore), NewGame):-
+place_cube(game(Board, cell(X, Y), Player, WhiteScore, BlackScore), NewGame):-
     % Verifica se o espaço de destino está vazio.
     valid_placement(X, Y, Board),
     % Atualiza o tabuleiro com a peça do jogador.
@@ -101,16 +74,24 @@ place_cube(game(Board, [X, Y], Player, WhiteScore, BlackScore), NewGame):-
     % Atualiza a pontuação do jogador.
     update_score(Player, WhiteScore, BlackScore, NewWhiteScore, NewBlackScore),
     % Verifica a condição de vitória e determina o vencedor, se aplicável.
-    game_over(game(UpdatedBoard, [X, Y], Player, NewWhiteScore, NewBlackScore), Winner),
-    NewGame = game(UpdatedBoard, [X, Y], Winner, NewWhiteScore, NewBlackScore).
+    game_over(game(UpdatedBoard, cell(X, Y), Player, NewWhiteScore, NewBlackScore), Winner),
+    NewGame = game(UpdatedBoard, cell(X, Y), Winner, NewWhiteScore, NewBlackScore).
+
+% Predicado para verificar se a célula está vazia.
+empty_cell(Board, X, Y):-
+    in_bounds(X, Y, Board),  % Verifica se as coordenadas estão dentro dos limites do tabuleiro.
+    \+ occupied_cell(X, Y, Board).  % Verifica se a célula está vazia.
 
 % Verifica se o espaço de destino está vazio.
 valid_placement(X, Y, Board):-
-    % Implemente a lógica para verificar se o espaço de destino está vazio.
+    empty_cell(Board, X, Y).
 
-% Atualiza o tabuleiro com a peça do jogador.
-place_piece(Board, X, Y, Player, UpdatedBoard):-
-    % Implemente a lógica para atualizar o tabuleiro com a peça do jogador.
+% Predicado para atualizar o tabuleiro com a peça do jogador.
+place_piece(Board, X, Y, Player, NewBoard):-
+    assert(occupied_cell(X, Y, Board)),
+    update_score(Player, WhiteScore, BlackScore, NewWhiteScore, NewBlackScore),
+    retract(occupied_cell(X, Y, Board)),
+    NewBoard = [cell(X, Y) | Board].
 
 % Atualiza a pontuação do jogador.
 update_score(white, WhiteScore, BlackScore, NewWhiteScore, BlackScore):-
@@ -118,10 +99,62 @@ update_score(white, WhiteScore, BlackScore, NewWhiteScore, BlackScore):-
 update_score(black, WhiteScore, BlackScore, WhiteScore, NewBlackScore):-
     NewBlackScore is BlackScore + 1.
 
-% Verifica a condição de vitória e determina o vencedor.
-game_over(game(Board, _, _, WhiteScore, BlackScore), Winner):-
-    % Implemente a lógica para verificar se o jogo terminou e determinar o vencedor.
+% Predicado para verificar a condição de vitória e determinar o vencedor.
+game_over(game(Board, cell(X, Y), _, WhiteScore, BlackScore), Winner):-
+    % Verifica se o pino neutro não pode mais se mover.
+    \+ can_move(X, Y, Board),
+    % Conta o número de peças brancas e pretas adjacentes ao pino neutro.
+    count_adjacent(X, Y, Board, white, WhiteAdjacent),
+    count_adjacent(X, Y, Board, black, BlackAdjacent),
+    % Compara o número de peças brancas e pretas adjacentes para determinar o vencedor.
+    (
+        WhiteAdjacent > BlackAdjacent, Winner = white;
+        BlackAdjacent > WhiteAdjacent, Winner = black;
+        % Em caso de empate, não há vencedor.
+        Winner = draw
+    ).
+
+% Verifica se o pino neutro pode se mover em alguma direção.
+can_move(X, Y, Board):-
+    % Verifica se a posição acima do pino está vazia.
+    NewX is X - 1, NewY is Y, empty_cell(Board, NewX, NewY), !;
+    % Verifica se a posição abaixo do pino está vazia.
+    NewX is X + 1, NewY is Y, empty_cell(Board, NewX, NewY), !;
+    % Verifica se a posição à esquerda do pino está vazia.
+    NewX is X, NewY is Y - 1, empty_cell(Board, NewX, NewY), !;
+    % Verifica se a posição à direita do pino está vazia.
+    NewX is X, NewY is Y + 1, empty_cell(Board, NewX, NewY), !;
+    % Verifica se a posição acima à esquerda do pino está vazia.
+    NewX is X - 1, NewY is Y - 1, empty_cell(Board, NewX, NewY), !;
+    % Verifica se a posição abaixo à direita do pino está vazia.
+    NewX is X + 1, NewY is Y + 1, empty_cell(Board, NewX, NewY), !;
+    fail.
+
+% Obtém a peça na posição [X, Y] do tabuleiro.
+get_piece(Board, X, Y, Piece):-
+    (member(cell(X, Y), Board), Piece = Player), !;
+    Piece = empty.
+
+% Conta o número de peças adjacentes da cor especificada.
+count_adjacent(X, Y, Board, Color, Count):-
+    findall(_, (adjacent_position(X, Y, AdjX, AdjY), get_piece(Board, AdjX, AdjY, Color)), List),
+    length(List, Count).
+
+% Define as posições adjacentes ao pino neutro.
+adjacent_position(X, Y, X1, Y):-
+    X1 is X - 1, X1 > 0.
+adjacent_position(X, Y, X2, Y):-
+    X2 is X + 1, X2 =< 14.
+adjacent_position(X, Y, X, Y1):-
+    Y1 is Y - 1, Y1 > 0.
+adjacent_position(X, Y, X, Y2):-
+    Y2 is Y + 1, Y2 =< 14.
+adjacent_position(X, Y, X3, Y3):-
+    X3 is X - 1, Y3 is Y - 1, X3 > 0, Y3 > 0.
+adjacent_position(X, Y, X4, Y4):-
+    X4 is X + 1, Y4 is Y + 1, X4 =< 14, Y4 =< 14.
 
 % Alternância de Jogadores
 switch_player(white, black).
 switch_player(black, white).
+
