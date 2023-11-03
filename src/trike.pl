@@ -1,4 +1,8 @@
-consult('menu.pl').
+:- use_module(library(lists)).
+:- use_module(library(random)).
+:- consult(menu).
+:- consult(board).
+
 
 % Estruturas de Dados
 % Estrutura de dados para representar as cores das peças.
@@ -158,3 +162,9 @@ adjacent_position(X, Y, X4, Y4):-
 switch_player(white, black).
 switch_player(black, white).
 
+% play/0
+% Starts the game and clears data when it ends 
+play :-
+    configurations(GameState), !,
+    game_cycle(GameState),
+    clear_data.

@@ -1,126 +1,92 @@
-consult('trike.pl').
+:- use_module(library(lists)).
+:- use_module(library(between)).
+:- use_module(library(system), [now/1]).
+:- consult(utils).
+:- consult(data).
+
+% choose_difficulty(+Bot)
+% Choose Bot difficulty (1 or 2)
+choose_difficulty(Bot) :-
+    format('Please select ~a status:\n', [Bot]),
+    write('1 - Random\n'),
+    write('2 - Greedy\n'),
+    get_option(1, 2, 'Difficulty', Option), !,
+    asserta((difficulty(Bot, Option))).
+
+% option(+N)
+% Main menu options. Each represents a game mode.
+option(1):-
+    write('Human vs. Human\n'),
+    get_name(player1), get_name(player2).
+option(2):-
+    write('Human vs. Bot\n'),
+    get_name(player1),
+    asserta((name_of(player2, 'bot'))), !, 
+    choose_difficulty(player2).
+option(3):-
+    write('Bot vs. Bot\n'),
+    asserta((name_of(player1, 'bot1'))),
+    asserta((name_of(player2, 'bot2'))), !,
+    choose_difficulty(player1),
+    choose_difficulty(player2).
+
+% choose_player(-Player)
+% Unifies player with the player who will start the game
+choose_player(Player):-
+    name_of(player1, Name1),
+    name_of(player2, Name2),
+    format('Who starts playing?\n1 - ~a with White\n2 - ~a with Black\n', [Name1, Name2]),
+    get_option(1, 2, 'Select', Index),
+    nth1(Index, [player1, player2], Player).
+
+% Trike/0
+% Game header
+Trike:-
+    write('===========================\n'),
+    write('|                         |\n'),
+    write('|         T R I K E       |\n'),
+    write('|                         |\n'),
+    write('===========================\n').
 
 
-:- dynamic tabuleiro/2.
-:- dynamic jogador_atual/1.
+% menu/0
+% Main menu
+menu:-  
+    write('Please select game mode:\n'),
+    write('1 - Human vs. Human\n'),
+    write('2 - Human vs. Bot\n'),
+    write('3 - Bot vs. Bot\n').
 
-% Definir os jogadores
-jogador(preto).
-jogador(branco).
-jogador(computador).
+% set_mode/0
+% Game mode choice
+set_mode :-
+    menu,
+    get_option(1, 3, 'Mode', Option), !,
+    option(Option).
 
-% Modos de Jogo
-modo_de_jogo(pvp).
-modo_de_jogo(pvc).
-modo_de_jogo(cvc).
-
-% Tamanhos de Tabuleiro
-tamanho_do_tabuleiro(5). % Tamanho padrão do tabuleiro
-
-% Níveis de Dificuldade para o Computador
-dificuldade(computador, facil).
-dificuldade(computador, medio).
-dificuldade(computador, dificil).
-
-% Iniciar partida no modo Player vs. Player.
-iniciar_partida(pvp, TamanhoTabuleiro, Dificuldade) :-
-    retractall(tabuleiro(_, _)),  % Limpar tabuleiro anterior se houver.
-    assert(tabuleiro([], TamanhoTabuleiro)),  % Inicializar tabuleiro vazio.
-    assert(jogador_atual(preto)),  % O jogador preto começa.
-    exibir_tabuleiro,
-    jogar_pvp.
-
-% Iniciar partida no modo Player vs. Computador.
-iniciar_partida(pvc, TamanhoTabuleiro, Dificuldade) :-
-    retractall(tabuleiro(_, _)),  % Limpar tabuleiro anterior se houver.
-    assert(tabuleiro([], TamanhoTabuleiro)),  % Inicializar tabuleiro vazio.
-    assert(jogador_atual(preto)),  % O jogador preto começa.
-    exibir_tabuleiro,
-    (jogador_atual(preto) -> jogar_pvp; jogar_computador(Dificuldade)).
-
-% Iniciar partida no modo Computador vs. Computador.
-iniciar_partida(cvc, TamanhoTabuleiro, Dificuldade) :-
-    retractall(tabuleiro(_, _)),  % Limpar tabuleiro anterior se houver.
-    assert(tabuleiro([], TamanhoTabuleiro)),  % Inicializar tabuleiro vazio.
-    assert(jogador_atual(preto)),  % O jogador preto começa.
-    exibir_tabuleiro,
-    jogar_computador_vs_computador(Dificuldade).
-
-% Menu do Jogo
-menu_jogo(ModoJogo, TamanhoTabuleiro, Dificuldade) :-
-    write('\n** Trike - Menu **\n'),
-    write('1. Iniciar Jogo\n'),
-    write('2. Escolher Modo de Jogo\n'),
-    write('3. Escolher Tamanho de Tabuleiro\n'),
-    write('4. Escolher Dificuldade do Computador\n'),
-    write('5. Sair do Jogo\n'),
-    write('Escolha uma opção: '),
-    read(Opcao),
-    escolher_opcao(Opcao, ModoJogo, TamanhoTabuleiro, Dificuldade).
-
-% Lidar com a escolha do jogador
-escolher_opcao(1, ModoJogo, TamanhoTabuleiro, Dificuldade) :-
-    iniciar_partida(ModoJogo, TamanhoTabuleiro, Dificuldade).
-escolher_opcao(2, ModoJogo, TamanhoTabuleiro, Dificuldade) :-
-    escolher_modo_jogo(NovoModo),
-    menu_jogo(NovoModo, TamanhoTabuleiro, Dificuldade).
-escolher_opcao(3, ModoJogo, TamanhoTabuleiro, Dificuldade) :-
-    escolher_tamanho_tabuleiro(NovoTamanho),
-    menu_jogo(ModoJogo, NovoTamanho, Dificuldade).
-escolher_opcao(4, ModoJogo, TamanhoTabuleiro, Dificuldade) :-
-    escolher_dificuldade(NovaDificuldade),
-    menu_jogo(ModoJogo, TamanhoTabuleiro, NovaDificuldade).
-escolher_opcao(5, _, _, _) :-
-    write('Obrigado por jogar! Até a próxima.\n'),
-    halt.
-escolher_opcao(_, ModoJogo, TamanhoTabuleiro, Dificuldade) :-
-    write('Opção inválida. Tente novamente.\n'),
-    menu_jogo(ModoJogo, TamanhoTabuleiro, Dificuldade).
-
-% Outras opções do menu (escolher modo de jogo, tamanho do tabuleiro, dificuldade)
-escolher_modo_jogo(NovoModo) :-
-    write('Escolha o Modo de Jogo:\n'),
-    write('1. Player vs Player (pvp)\n'),
-    write('2. Player vs Computer (pvc)\n'),
-    write('3. Computer vs Computer (cvc)\n'),
-    write('Opção: '),
-    read(Opcao),
+% choose_board(-Size)
+% Escolha do tamanho do tabuleiro
+choose_board(Size):-
+    write('Escolha o tamanho do tabuleiro:\n'),
+    write('1 - Small\n'),
+    write('2 - Medium\n'),
+    write('3 - Large\n'),
+    repeat,
+    read_number(Choice),
     (
-        Opcao == 1 -> NovoModo = pvp;
-        Opcao == 2 -> NovoModo = pvc;
-        Opcao == 3 -> NovoModo = cvc
-    ).
+        (Choice = 1, Size = 13);
+        (Choice = 2, Size = 17);
+        (Choice = 3, Size = 21)
+    ),
+    !.
 
-escolher_tamanho_tabuleiro(NovoTamanho) :-
-    write('Escolha o Tamanho do Tabuleiro:\n'),
-    write('1. 5x5\n'),
-    write('2. 6x6\n'),
-    write('3. 7x7\n'),
-    write('Opção: '),
-    read(Opcao),
-    (
-        Opcao = 1 -> NovoTamanho = 5;
-        Opcao = 2 -> NovoTamanho = 6;
-        Opcao = 3 -> NovoTamanho = 7
-    ).
 
-escolher_dificuldade(NovaDificuldade) :-
-    write('Escolha a Dificuldade do Computador:\n'),
-    write('1. Fácil\n'),
-    write('2. Médio\n'),
-    write('3. Difícil\n'),
-    write('Opção: '),
-    read(Opcao),
-    (
-        Opcao = 1 -> NovaDificuldade = facil;
-        Opcao = 2 -> NovaDificuldade = medio;
-        Opcao = 3 -> NovaDificuldade = dificil
-    ).
-
-% Iniciar a partida com base nas escolhas feitas
-iniciar_partida(ModoJogo, TamanhoTabuleiro, Dificuldade) :-
-    retractall(tabuleiro(_, _)), % Remover o tabuleiro anterior
-    assert(tabuleiro([], TamanhoTabuleiro)), % Inicializar tabuleiro vazio
-    assert(jogador_atual(preto)), % O jogador preto começa
-    jogar_partida(ModoJogo, Dificuldade).
-
+% configuration(-GameState)
+% Initialize GameState with Board, first Player, empty FearList and TotalMoves
+configurations([Board,Player,[],0]):-
+    Trike,
+    set_mode,
+    init_random_state,
+    choose_player(Player),
+    choose_board(Size), 
+    init_state(Size, Board).
