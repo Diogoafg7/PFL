@@ -28,7 +28,8 @@ position(_, Col-Row, notused) :- notused(Col-Row), !.
 in_bounds(Board, Col-Row) :-
     length(Board, Size),
     between(1, Size, Col),
-    between(1, Size, Row).
+    between(1, Size, Row),
+    \+empty(Col-Row)
 
 % display_bar(+Size)
 % Displays the pattern '|---|---|-...' with fixed length
@@ -90,7 +91,7 @@ display_rows(Board, Line, Size):-
     NextLine is Line + 1,
     display_rows(Board, NextLine, Size).
 
-% init_state(+Size,-Board)
-% Unifies Board with a Size matrix that represents the game: animals and empty pieces
-init_state(Size, Board):-
-    board(Size, Board),
+% init_state(+Size,-GameState)
+% Unifies GameState with a Size matrix that represents the game: animals and empty pieces
+init_state(Size, [Board , W , 0]):-
+    board(Size , Board).
