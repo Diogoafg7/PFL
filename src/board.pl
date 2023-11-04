@@ -1,96 +1,148 @@
 :- use_module(library(lists)).
-:- consult(data).
-:- consult(utils).
+:- use_module(library(random)).
 
-% put_piece(+Board,+Coordinate,+Piece,-NewBoard).
-% Unifies NewBoard with a matrix representing the placement of Piece on Board in Col-Row coordinates
-put_piece(Board, Col-Row, Piece, NewBoard) :-
-    RowIndex is Row - 1, ColIndex is Col - 1,
-    nth0(RowIndex,Board,Line),
-    replace(ColIndex, Piece, Line, NewLine),
-    replace(RowIndex, NewLine, Board, NewBoard).
+% dynamic player(+Player,-PlayerType)
+:- dynamic player/2.
 
-% position(+Board,+Coordinate,-Piece)
-% Unites Piece with the piece on the board at those coordinates
-position(Board, Col-Row, Piece) :- 
-    \+notused(Col-Row),
-    nth1(Row, Board, Line),
-    nth1(Col, Line, Piece), !.
-position(Board, Col-Row, Piece) :- 
-    notused(Col-Row),
-    nth1(Row, Board, Line),
-    nth1(Col, Line, Piece),
-    Piece \= empty, Piece \= notused, !.
-position(_, Col-Row, notused) :- notused(Col-Row), !.
+% dynamic difficulty(+Computer,-Level)
+:- dynamic difficulty_level/2.
 
-% in_bounds(+Board,+Coordinate)
-% Checks if calculated coordinate is inside Board
-in_bounds(Board, Col-Row) :-
-    length(Board, Size),
-    between(1, Size, Col),
-    between(1, Size, Row).
+% dynamic player_checker(+Player,-Symbol)
+:- dynamic player_checker/2.
 
-% display_bar(+Size)
-% Displays the pattern '|---|---|-...' with fixed length
-display_bar(0):-
-    write('|\n'), !.
-display_bar(N):-
-    write('|---'),
-    N1 is N - 1,
-    display_bar(N1).
+% dynamic neutral_pawn_coordinates(Row-Col)
+:- dynamic neutral_pawn_coordinates/1.
 
-% display_header(+Size)
-% Displays the pattern '1  2  3  4...' with fixed length
-display_header(Max, Max):-
-    format('~d\n  ', [Max]), !.
-display_header(1, Max):-
-    write('\n    1   '),
-    display_header(2, Max), !.
-display_header(N, Max):-
+% dynamic player_score(+Player, -Score)
+:- dynamic player_score/2.
+
+% board(+SizeOfBase,+Matrix)
+% Board structure
+% Board Small
+board(13, [
+    [empty, empty, empty, empty, empty, empty, notused, empty, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, empty, notused, notused, notused, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, notused, notused, notused, notused, notused, empty, empty, empty, empty],
+    [empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty],
+    [empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty],
+    [empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty],
+    [notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused]
+]).
+
+% Board Medium
+board(17, [
+    [empty, empty, empty, empty, empty, empty, empty, empty, notused, empty, empty, empty, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, empty, empty, empty, notused, notused, notused, empty, empty, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty],
+    [empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty],
+    [empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty],
+    [empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty],
+    [notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused]
+]).
+
+% Board Large
+board(21, [
+    [empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, notused, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, empty, empty, empty, empty, empty, notused, notused, notused, empty, empty, empty, empty, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty],
+    [empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty],
+    [empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty],
+    [empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty],
+    [empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty],
+    [notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused]
+]).
+
+% board(+Cells, +Columns, +Rows)
+board(13,5,3).
+board(17,7,4).
+board(21,9,5).
+
+% other_player(+CurrentPlayer,-NextPlayer)
+% Change player turn
+other_player(player1, player2).
+other_player(player2, player1).
+
+% symbol(+Piece,-Symbol)
+% Translates the piece to a visible symbol on the board
+symbol(empty,'-|-') :- !.
+symbol(notused,'  ') :- !.
+symbol(player1,'1') :- !.
+symbol(player2,'2') :- !.     
+symbol(W,'W') :- !.
+symbol(B,'B') :- !.
+symbol(n,'X') :- !.
+
+% initial_state(+Size, -GameState)
+% Initializes the initial state of the game based on the given board size.
+initial_state(Size,[Board,_,_]) :-
+    board(Size,Board).
+
+% display_column_numbering(+ColumnNumber, +TotalNumberOfColumns)
+% Displays column numbering from 1 to Max on the game board.
+display_column_numbering(Max, Max):-
+    format('| ~d |', [Max]), !.
+display_column_numbering(1, Max):-
+    write('   | 1 '),
+    display_column_numbering(2, Max), !.
+display_column_numbering(N, Max):-
     N > 9,
-    format('~d  ', [N]),
+    format('| ~d ', [N]),
     Next is N + 1,
-    display_header(Next, Max).
-display_header(N, Max):-
-    format('~d   ', [N]),
+    display_column_numbering(Next, Max).
+display_column_numbering(N, Max):-
+    format('| ~d ', [N]),
     Next is N + 1,
-    display_header(Next, Max).
+    display_column_numbering(Next, Max).
 
-% get_symbol(+Board,+Line,+Col,-Symbol)
-% Unites Symbol with the part symbol in the Col-Line coordinate of Board
-get_symbol(Board, Line, Col, Symbol):-
-    position(Board,Col-Line,Piece),
-    symbol(Piece, Symbol).
+% display_line(+TotalNumberOfColumns)
+% Generates and prints a horizontal line separator for the game board.
+display_line(0):-
+    write('---|\n'), !.
+display_line(N):-
+    write('---|'),
+    N1 is N - 1,
+    display_line(N1).
 
-% display_pieces(+Board,+Line,+Col,+Size)
-% Displays the Board piece in Line-Col coordinates
-display_pieces(_, _, Col, Size):- 
-    Col > Size, write('\n  '), !.
-display_pieces(Board, Line, Col, Size):-
-    get_symbol(Board, Line, Col, Symbol),
-    format(' ~a |', [Symbol]),
-    NextCol is Col + 1,
-    display_pieces(Board, Line, NextCol, Size).
+% display_rows(+Board, +Row, +TotalRows, +Columns)
+% Displays the rows of the game board with their respective elements.
+display_rows(_, LineNumber, Rows, _):- 
+    LineNumber > Rows, nl, !.
+display_rows([Line|Rest], LineNumber, Rows, Columns):-
+    LineNumber > 9,
+    format(' ~d |', [LineNumber]),
+    display_elements(Line),nl,
+    display_line(Columns),
+    NextLineNumber is LineNumber + 1,
+    display_rows(Rest, NextLineNumber, Rows, Columns), !.
+display_rows([Line|Rest], LineNumber, Rows, Columns):-
+    format(' ~d |', [LineNumber]),
+    display_elements(Line),nl,
+    display_line(Columns),
+    NextLineNumber is LineNumber + 1,
+    display_rows(Rest, NextLineNumber, Rows, Columns).
 
-% display_rows(+Board,+Line,+Size)
-% Displays one line of the board
-display_rows(_, Line, Size):- 
-    Line > Size, nl, !.
-display_rows(Board, Line, Size):-
-    Line > 9,
-    format('~d|', [Line]),
-    display_pieces(Board, Line, 1, Size),
-    display_bar(Size),
-    NextLine is Line + 1,
-    display_rows(Board, NextLine, Size), !.
-display_rows(Board, Line, Size):-
-    format('~d |', [Line]),
-    display_pieces(Board, Line, 1, Size),
-    display_bar(Size),
-    NextLine is Line + 1,
-    display_rows(Board, NextLine, Size).
+% display_elements(+Line)
+% Displays the elements of a particular row in the game board.
+display_elements([]).
+display_elements([CurrentElement|Rest]) :-
+    symbol(CurrentElement, Symbol),
+    format('~w|', [Symbol]),
+    display_elements(Rest).
 
-% init_state(+Size,-Board)
-% Unifies Board with a Size matrix that represents the game: animals and empty pieces
-init_state(Size, Board):-
-    board(Size, Board),
+% display_player_turn(+Player)
+% Displays a message indicating the player who will make the next move
+display_player_turn(Player) :-
+    player(Player, PlayerType),
+    player_checker(Player, Checker),
+    symbol(Checker, Symbol),
+    format(' > ~w turn to play! Your checker is:~w', [PlayerType, Symbol]).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lista de moves
+% direction_from_checker(+BoardSize, +neutral_pawn_coordinates, +PathCellList)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

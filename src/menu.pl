@@ -2,42 +2,7 @@
 :- use_module(library(between)).
 :- use_module(library(system), [now/1]).
 :- consult(utils).
-:- consult(data).
-
-% choose_difficulty(+Bot)
-% Choose Bot difficulty (1 or 2)
-choose_difficulty(Bot) :-
-    format('Please select ~a status:\n', [Bot]),
-    write('1 - Random\n'),
-    write('2 - Greedy\n'),
-    get_option(1, 2, 'Difficulty', Option), !,
-    asserta((difficulty(Bot, Option))).
-
-% option(+N)
-% Main menu options. Each represents a game mode.
-option(1):-
-    write('Human vs. Human\n'),
-    get_name(player1), get_name(player2).
-option(2):-
-    write('Human vs. Bot\n'),
-    get_name(player1),
-    asserta((name_of(player2, 'bot'))), !, 
-    choose_difficulty(player2).
-option(3):-
-    write('Bot vs. Bot\n'),
-    asserta((name_of(player1, 'bot1'))),
-    asserta((name_of(player2, 'bot2'))), !,
-    choose_difficulty(player1),
-    choose_difficulty(player2).
-
-% choose_player(-Player)
-% Unifies player with the player who will start the game
-choose_player(Player):-
-    name_of(player1, Name1),
-    name_of(player2, Name2),
-    format('Who starts playing?\n1 - ~a with White\n2 - ~a with Black\n', [Name1, Name2]),
-    get_option(1, 2, 'Select', Index),
-    nth1(Index, [player1, player2], Player).
+:- consult(board).
 
 % Trike/0
 % Game header
@@ -48,45 +13,145 @@ Trike:-
     write('|                         |\n'),
     write('===========================\n').
 
-
 % menu/0
 % Main menu
 menu:-  
     write('Please select game mode:\n'),
     write('1 - Human vs. Human\n'),
-    write('2 - Human vs. Bot\n'),
-    write('3 - Bot vs. Bot\n').
+    write('2 - Human vs. Computer\n'),
+    write('3 - Computer vs. Computer\n'),
+    write('0 - Exit\n').
 
-% set_mode/0
-% Game mode choice
-set_mode :-
-    menu,
-    get_option(1, 3, 'Mode', Option), !,
-    option(Option).
+% menu_option(+Input)
+% Based on the user input, executes a specific action corresponding to the chosen game mode or handles an invalid input.
+menu_option(0) :-
+    write('\nEnding the game. Thank you for playing Trike\n\n').
 
-% choose_board(-Size)
-% Escolha do tamanho do tabuleiro
-choose_board(Size):-
-    write('Escolha o tamanho do tabuleiro:\n'),
-    write('1 - Small\n'),
-    write('2 - Medium\n'),
-    write('3 - Large\n'),
-    repeat,
-    read_number(Choice),
+menu_option(1) :-
+    write('Human vs Human\n'),
+    setup_human_vs_human.
+
+menu_option(2) :-
+    write('Human vs Computer\n'),
+    setup_human_vs_computer.
+
+menu_option(3) :-
+    write('Computer vs Computer\n'),
+    setup_computer_vs_computer.
+
+menu_option(_Other) :-
+    write('\nERROR: Invalid option!\n\n'),
+    write('Enter one of the options (e.g. "1." for Player vs Player game mode): '),
+    read(Input),
+    menu_option(Input).
+
+% setup_human_vs_human
+setup_human_vs_human:-
+    write('Enter the name for Player 1: '),
+    read(Player1Name),
+    asserta(player(player1, Player1Name)),
+    write('Enter the name for Player 2: '),
+    read(Player2Name),
+    asserta(player(player2, Player2Name),
+    setup_game.
+
+% setup_human_vs_computer
+setup_human_vs_computer:-
+    write('Enter your name: '),
+    read(Player1Name),
+    asserta(player(player1, Player1Name)),
+    asserta(player(playerPC, 'Computer')), 
+    computer_difficulty_level(computer),
+    setup_game.
+
+% setup_computer_vs_computer
+setup_computer_vs_computer:-
+    write('Enter the name for Computer 1: '),
+    read(Player1Name),
+    write('Enter the name for Computer 2: '),
+    read(Player2Name),
+    asserta(player(playerPC1, Player1Name)),
+    asserta(player(playerPC2, Player2Name),
+    computer_difficulty_level(computer1),
+    computer_difficulty_level(computer2),
+    setup_game.
+
+% first_move_player(-Player)
+% Allows the user to choose or selects the player who makes the first move randomly.
+first_move_player(Player) :-
+    write('Choose the player who will make the first move:\n'),
+    write('1 - Player 1\n'),
+    write('2 - Player 2\n'),
+    write('3 - Random\n'),
+    read(UserChoice),
     (
-        (Choice = 1, Size = 13);
-        (Choice = 2, Size = 17);
-        (Choice = 3, Size = 21)
+        UserChoice = 1 -> Player = player1, write('Player 1 will make the first move.\n');
+        UserChoice = 2 -> Player = player2, write('Player 2 will make the first move.\n');
+        UserChoice = 3 -> random_member(Player, [player1, player2]), format('%w will make the first move.\n', [Player]);
+        write('Invalid choice. Please select 1, 2, or 3.\n'),
+        first_move_player(Player)
+    ).
+
+% board_size(-Size)
+% Reads the chosen size for the game board from the user input.
+board_size(Size) :-
+    write('Choose the size for the game board:\n'),
+    write('1 - Small (13)\n'),
+    write('2 - Medium (17)\n'),
+    write('3 - Large (21)\n'),
+    read(UserChoice),
+    (
+        UserChoice = 1 -> Size = 13, write('You selected a small board (6x6).\n');
+        UserChoice = 2 -> Size = 17, write('You selected a medium board (10x10).\n');
+        UserChoice = 3 -> Size = 21, write('You selected a large board (15x15).\n');
+        write('Invalid choice. Please select 1, 2, or 3.\n'),
+        board_size(Size)
+    ).
+
+% computer_difficulty_level(+Computer)
+% Enables the user to choose the difficulty level for the specified Computer
+computer_difficulty_level(Computer) :-
+    write('Choose the difficulty level for the computer player:\n'),
+    write('1 - Easy (Random Movement)\n'),
+    write('2 - Medium (Greedy Movement)\n'),
+    read(UserChoice),
+    (
+        UserChoice = 1 -> Level = 1, write('You selected Easy (Random Movement).\n');
+        UserChoice = 2 -> Level = 2, write('You selected Medium (Greedy Movement).\n');
+        write('Invalid choice. Please select 1 or 2 for the difficulty level.\n'),
+        computer_difficulty_level(Computer)
     ),
-    !.
+    asserta(difficulty_level(Computer, Level)).
 
+% player symbol
+default_player_checker :-
+    asserta(player_checker(player1, W)),
+    asserta(player_checker(player2, B)),
+    asserta(player_checker(playerPC, P)),
+    asserta(player_checker(playerPC1, P1)),
+    asserta(player_checker(playerPC2, P2)).
 
-% configuration(-GameState)
-% Initialize GameState with Board, first Player, empty FearList and TotalMoves
-configurations([Board,Player,[],0]):-
+set_default_neutral_pawn_coordinates(Size) :-
+    board(Size, Cols, Rows),
+    asserta(neutral_pawn_coordinates(Rows-Cols)).
+
+% setup_game(-GameState)
+% Initializes the game state with the Board, the player who makes the first move, and other game settings.
+setup_game([Board, Player, MoveNumber]) :-
+    first_move_player(Player),
+    board_size(Size),
+    default_player_checker,
+    set_default_neutral_pawn_coordinates(Size),
+    MoveNumber is 1,
+    initial_state(Size, [Board,_,_]), !.
+
+% game_setup(-GameState)
+% Prompts the user to select a game mode, handles the chosen mode, chooses the player who makes the first move,
+% asks for the board size, and initializes the board state.
+% Initializes the game state with the Board and the player who makes the first move.
+game_setup([Board, Player, MoveNumber]) :-
     Trike,
-    set_mode,
-    init_random_state,
-    choose_player(Player),
-    choose_board(Size), 
-    init_state(Size, Board).
+    menu,
+    read(Input),
+    menu_option(Input),
+    setup_game([Board, Player, MoveNumber]).
