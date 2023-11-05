@@ -18,7 +18,7 @@ play :-
 % game_cycle(+GameState)
 % Loop that keeps the game running
 game_cycle(GameState):-
-    game_over(GameState, Winner), !,
+    game_over(GameState), !,
     display_game(GameState),
     show_winner(player1, player2).
 game_cycle(GameState):-
@@ -30,26 +30,19 @@ game_cycle(GameState):-
 
 % display_game(+GameState)
 % Prints the board
-display_game([Board,_,_,_]) :-
+display_game([Board,_,_]) :-
     clear_console,
     length(Board, Size),
-    display_header(1, Size),
-    display_bar(Size),
-    display_rows(Board, 1, Size).
+    display_column_numbering(1, Size),
+    display_line(Size),
+        display_rows(Board, 1, Size, Size).
 
 % print_turn(+GameState)
 % Prints a message declaring whose turn it is
-print_turn([_, Player, _, _]):-
+print_turn([_, Player, _]):-
     name_of(Player, Name),
     format('Player ~a, is your turn!\n', [Name]), !.
 
-% game_over(+GameState)
-% Checks if the game has reached a ending state
-game_over([Board,_,_]) :-
-    length(Board, Rows),
-    board(Size, _, Rows),
-    neutral_pawn_coordinates(NeutralRow-NeutralCol),!,
-    \+ at_least_one_cell_empty(Board, Size, NeutralRow-NeutralCol).
 
 % find_out_winner(+GameState, -Winner)
 % Finds the winner given the game state
@@ -110,7 +103,7 @@ get_move(Board, Col1-Row1-Col2-Row2):-
     get_option(1, Size, 'Origin column', Col1),
     get_option(1, Size, 'Origin row', Row1),
     get_option(1, Size, 'Destination column', Col2),
-    get_option(1, Size, 'Destination row', Row2).
+    get_option(1, Size, 'Destination row', Row2),
     validate_move([Board,Player,MoveNumber], Row-Col), !.
 
 % validate_move(+GameState,-Coordinate)
@@ -181,7 +174,7 @@ swap_sides_decision(Choice) :-
         Input == 'n' ->
             Choice = 'n'
         ;
-        write('Invalid choice. Please enter either "y" or "n."'), nl,
+        write('Invalid choice. Please enter either "y." or "n."'), nl,
         swap_sides_decision(Choice)
     ).
 

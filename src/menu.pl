@@ -4,9 +4,9 @@
 :- consult(utils).
 :- consult(board).
 
-% Trike/0
+% trike/0
 % Game header
-Trike:-
+trike:-
     write('===========================\n'),
     write('|                         |\n'),
     write('|         T R I K E       |\n'),
@@ -27,6 +27,7 @@ menu:-
 % Based on the user input, executes a specific action corresponding to the chosen game mode or handles an invalid input.
 menu_option(0) :-
     write('\nEnding the game. Thank you for playing Trike\n\n').
+
 
 menu_option(1) :-
     write('Human vs Human\n'),
@@ -73,7 +74,7 @@ first_move_player(Player) :-
     (
         UserChoice = 1 -> Player = player1, write('Player 1 will make the first move.\n');
         UserChoice = 2 -> Player = player2, write('Player 2 will make the first move.\n');
-        UserChoice = 3 -> random_member(Player, [player1, player2]), format('%w will make the first move.\n', [Player]);
+        UserChoice = 3 -> random_member(Player, [player1, player2]), format('~w will make the first move.\n', [Player]);
         write('Invalid choice. Please select 1, 2, or 3.\n'),
         first_move_player(Player)
     ).
@@ -82,14 +83,14 @@ first_move_player(Player) :-
 % Reads the chosen size for the game board from the user input.
 board_size(Size) :-
     write('Choose the size for the game board:\n'),
-    write('1 - Small (7)\n'),
-    write('2 - Medium (13)\n'),
-    write('3 - Large (17)\n'),
+    write('1 - Small (3)\n'),
+    write('2 - Medium (5)\n'),
+    write('3 - Large (7)\n'),
     read(UserChoice),
     (
-        UserChoice = 1 -> Size = 6, write('You selected a small board (6).\n');
-        UserChoice = 2 -> Size = 15, write('You selected a medium board (15).\n');
-        UserChoice = 3 -> Size = 28, write('You selected a large board (28).\n');
+        UserChoice = 1 -> Size = 6, write('You selected a small board (6 cells).\n');
+        UserChoice = 2 -> Size = 15, write('You selected a medium board (15 cells).\n');
+        UserChoice = 3 -> Size = 28, write('You selected a large board (28 cells).\n');
         write('Invalid choice. Please select 1, 2, or 3.\n'),
         board_size(Size)
     ).
@@ -118,18 +119,33 @@ set_default_neutral_pawn_coordinates(Size) :-
     board(Size, Cols, Rows),
     asserta(neutral_pawn_coordinates(Rows-Cols)).
 
+
+%  game_over(+GameState, -Winner)
+% Checks if the game has reached a ending state
+game_over([Board,_,_]) :-
+    length(Board, Rows),
+    board(Size, _, Rows),
+    neutral_pawn_coordinates(NeutralRow-NeutralCol),!,
+    \+ at_least_one_cell_empty(Board, Size, NeutralRow-NeutralCol).
+
 % game_setup(-GameState)
 % Prompts the user to select a game mode, handles the chosen mode, chooses the player who makes the first move,
 % asks for the board size, and initializes the board state.
 % Initializes the game state with the Board and the player who makes the first move
-game_setup([Board, Player, MoveNumber]) :-
-    Trike,
+
+game_setup([Board, Player, 1]) :-
+    trike,
     menu,
     read(Input),
-    menu_option(Input),
+    (
+        Input = 0 ->
+            write('\nEnding the game. Thank you for playing Trike\n\n')
+        ;
+            (menu_option(Input), !)
+    ),
+    Input =\= 0, !,
     first_move_player(Player),
     board_size(Size),
     default_player_checker,
     set_default_neutral_pawn_coordinates(Size),
-    MoveNumber is 1,
-    initial_state(Size, [Board,_,_]), !.
+    initial_state(Size, [Board, _, _]).

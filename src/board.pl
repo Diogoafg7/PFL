@@ -52,9 +52,11 @@ board(6,7,3).
 board(15,7,5).
 board(28,7,7).
 
-
-% moves_from_neutral(+BoardSize, +NeutralPawnCoordinate, +PathCellList)
-%Predicate that presents a list with coordinates of cells that can be reached
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Lista de moves
+% moves_from_neutral(+BoardSize, +neutral_pawn_coordinates, +PathCellList)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Predicate that presents a list with coordinates of cells that can be reached
 % in a given direction from a predefined cell, on a fixed size board
 
 % Board Size 3
@@ -121,15 +123,17 @@ other_player(player2, player1).
 % symbol(+Piece,-Symbol)
 % Translates the piece to a visible symbol on the board
 symbol(empty,'-|-') :- !.
-symbol(notused,'  ') :- !.
+symbol(notused,'O') :- !.
 symbol(player1,'1') :- !.
 symbol(player2,'2') :- !.     
-symbol(W,'W') :- !.
-symbol(B,'B') :- !.
-symbol(n,'X') :- !.
+symbol(W,'W') :- !.  % white player
+symbol(B,'B') :- !.  % black player
+symbol(n,'X') :- !.  % neutral pawn
 
 % initial_state(+Size, -GameState)
 % Initializes the initial state of the game based on the given board size.
+% GameState has the format "[Board , player , movenumber]"
+
 initial_state(Size,[Board,_,_]) :-
     board(Size,Board).
 
@@ -193,7 +197,3 @@ display_player_turn(Player) :-
     symbol(Checker, Symbol),
     format(' > ~w turn to play! Your checker is:~w', [PlayerType, Symbol]).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Lista de moves
-% moves_from_neutral(+BoardSize, +neutral_pawn_coordinates, +PathCellList)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
