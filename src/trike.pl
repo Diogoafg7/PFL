@@ -8,19 +8,19 @@
 %%%%%%%%%% New updates %%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% play/0
 % Starts the game and clears data when it ends 
 play :-
-    game_setup(GameState), !,
+    game_setup(GameState),!,
     game_cycle(GameState),
     clear_data.
+
 
 % game_cycle(+GameState)
 % Loop that keeps the game running
 game_cycle(GameState):-
     game_over(GameState, Winner), !,
     display_game(GameState),
-    show_winner(GameState, Winner).
+    show_winner(player1, player2).
 game_cycle(GameState):-
     display_game(GameState),
     print_turn(GameState),
@@ -63,26 +63,6 @@ find_out_winner([Board, Player,_], Winner) :-
     calculate_total_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer),
     decide_the_winner(Player, OtherPlayer, Winner).
 
-% game_over(+GameState)
-% Checks if the game has reached a ending state
-game_over([Board,_,_]) :-
-    length(Board, Rows),
-    board(Size, _, Rows),
-    neutral_pawn_coordinates(NeutralRow-NeutralCol),!,
-    \+ at_least_one_cell_empty(Board, Size, NeutralRow-NeutralCol).
-
-% find_out_winner(+GameState, -Winner)
-% Finds the winner given the game state
-find_out_winner([Board, Player,_], Winner) :-
-    neutral_pawn_coordinates(NeutralRow-NeutralCol),
-    length(Board, Rows),
-    board(Size, _, Rows),
-    other_player(Player, OtherPlayer),
-    asserta(player_score(Player, 1)),
-    asserta(player_score(OtherPlayer, 0)),
-    calculate_total_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer),
-    decide_the_winner(Player, OtherPlayer, Winner).
-
 % choose_move(+GameState,-Move)
 % A human player chooses a move
 choose_move([Board,Player,MoveNumber], Row-Col) :-
@@ -93,6 +73,27 @@ choose_move([Board,Player,MoveNumber], Row-Col) :-
 choose_move([Board,Player,MoveNumber], Move):-
     difficulty(Player, Level),                  
     choose_move([Board,Player,MoveNumber], Player, Level, Move), !. 
+
+% choose_move(+GameState, +Player, +Level, -Move)
+% Selects a random move for the computer
+choose_move(GameState, Player, 1,  Row-Col):-
+    valid_moves(GameState, Player, ListOfMoves),
+    random_member(Row-Col, ListOfMoves).
+
+% choose_move(+GameState, +Player, +Level, -Move)
+% Selects a greedy move for the computer
+choose_move(GameState, Player, 2, Row-Col):-
+    valid_moves(GameState, Player, ListOfMoves),
+    find_best_move(GameState, Player, ListOfMoves, Row-Col).
+
+% valid_moves(+GameState, +Player, -ListOfMoves)
+% Calculates a list of available moves for the current game state.
+valid_moves(GameState, _, ListOfMoves):-
+    findall(Row-Col, validate_move(GameState,Row-Col),ListOfMoves),
+    \+length(ListOfMoves, 0), !.
+valid_moves(GameState, Player, ListOfMoves):-
+    [Board,Player,MoveNumber] = GameState,
+    findall(Row-Col, validate_move([Board,Player,MoveNumber],Row-Col),ListOfMoves).
 
 % get_option(+Min,+Max,+Context,-Value)
 % Unifies Value with the value given by user input between Min and Max when asked about Context
@@ -110,6 +111,7 @@ get_move(Board, Col1-Row1-Col2-Row2):-
     get_option(1, Size, 'Origin row', Row1),
     get_option(1, Size, 'Destination column', Col2),
     get_option(1, Size, 'Destination row', Row2).
+    validate_move([Board,Player,MoveNumber], Row-Col), !.
 
 % validate_move(+GameState,-Coordinate)
 % Validates that the entered coordinates correspond to a valid position for inserting a checker
@@ -151,6 +153,38 @@ move([Board,Player,MoveNumber], Row-Col, NewGameState):-
     NewMoveNumber is MoveNumber + 1,
     NewGameState = [NewBoard,NewPlayer,NewMoveNumber].
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Auxiliary Rules and Predicates
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% valid_get_move_coordinate(+Value,-Max)
+% Checks if the entered value is between 1 and the maximum
+valid_get_move_coordinate(Value, Max) :-
+    integer(Value),
+    Value >= 1,
+    Value =< Max.
+
+% set_neutral_pawn_coordinate(-Coordinate)
+set_neutral_pawn_coordinate(Row-Col) :-
+    retractall(neutral_pawn_coordinates(_)),
+    asserta(neutral_pawn_coordinates(Row-Col)).
+
+% swap_sides_decision(+Choice)
+% Ask the player if he wants to switch sides and save the answer
+swap_sides_decision(Choice) :-
+    write('Do you want to swap sides? (y/n): '),
+    read(Input),
+    (
+        Input == 'y' ->
+            Choice = 'y'
+        ;
+        Input == 'n' ->
+            Choice = 'n'
+        ;
+        write('Invalid choice. Please enter either "y" or "n."'), nl,
+        swap_sides_decision(Choice)
+    ).
+
 % swap_side(+CurrentPlayer)
 % Swap the symbols that represent each player
 swap_sides :-
@@ -170,7 +204,7 @@ is_valid_direction_not_obstructed(Board, Row, Col) :-
     length(Board, Rows),
     board(Size,_,Rows),
     neutral_pawn_coordinates(NeutralRow-NeutralCol),
-    direction_from_checker(Size, NeutralRow-NeutralCol, PathList),
+    moves_from_neutral(Size, NeutralRow-NeutralCol, PathList),
     memberchk(Row-Col, PathList), !,
     is_not_obstructed(Board, Row-Col, PathList).
 
@@ -207,26 +241,32 @@ replace(Index, Element, List, Result) :-
 % at_least_one_cell_empty(+Board, +Size, +NeutralRow-NeutralCol)
 % Checks for the presence of at least one empty cell around the neutral pawn
 at_least_one_cell_empty(Board, Size, NeutralRow-NeutralCol) :-
-    direction_from_checker(Size, NeutralRow-NeutralCol, List),
+    moves_from_neutral(Size, NeutralRow-NeutralCol, List),
     nth1(1, List, FirstElement),
     is_cell_empty(Board, FirstElement), !.
 
 % calculate_total_score(+Board, +Size, +NeutralRow-NeutralCol, +Player, +OtherPlayer)
 % Determines the total score
 calculate_total_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer) :-
-    direction_from_checker(Size, NeutralRow-NeutralCol, List),
-    add_1_point(Board, List, Player, OtherPlayer).
+    first_elements_list(Size, NeutralRow-NeutralCol, FirstElementsList),
+    add_points_due_to_checker_type(Board, Player, OtherPlayer, FirstElementsList).
 
-% add_1_point(+Board, +List, +Player, +OtherPlayer)
-% Adds one point based on the checker type
-add_1_point(Board, List, Player, OtherPlayer) :-
-    nth1(1, List, FirstElementCoordinate),
-    check_checker_type(Board, FirstElementCoordinate, Type),
-    add_score_due_to_type(Type, Player, OtherPlayer).
+% first_elements_list(+Size, +NeutralRow-NeutralCol, -FirstElementsList)
+% Retrieves the list of first elements from the 'moves_from_neutral' predicate for a given neutral position.
+first_elements_list(Size, NeutralRow-NeutralCol, FirstElementsList) :-
+    bagof(FirstElement, Args^(moves_from_neutral(Size, NeutralRow-NeutralCol, Args), nth1(1, Args, FirstElement)), FirstElementsList).
+
+% add_points_due_to_checker_type(+Board, +Player, +OtherPlayer, +List)
+% Adds points based on the checker type for a list of cell positions.
+add_points_due_to_checker_type(_,_,_,[]).
+add_points_due_to_checker_type(Board, Player, OtherPlayer, [H|T]) :-
+    check_checker_type(Board, H, Type),
+    add_score_due_to_type(Type, Player, OtherPlayer),
+    add_points_due_to_checker_type(Board, Player, OtherPlayer, T).
 
 % check_checker_type(+Board, +Row-Col, -Type)
 % Retrieves the type of the checker at the specified Row and Column
-check_checker_type(Board, Row-Col,Type) :-
+check_checker_type(Board, Row-Col, Type) :-
     nth1(Row, Board, RowList), 
     nth1(Col, RowList, Type).
 
@@ -247,9 +287,9 @@ add_score_due_to_type(Type, Player, OtherPlayer) :-
             asserta(player_score(OtherPlayer,NewOtherScore))       
     ).
 
-% decide_the_winner(+Player, +OtherPlayer, -Winner)
-% Determines the winner based on the players scores.
-decide_the_winner(Player, OtherPlayer, Winner) :-
+% show_winner(+Player, +OtherPlayer)
+% Determines the winner and displays a congratulatory message.
+show_winner(Player, OtherPlayer) :-
     player_score(Player, Score),
     player_score(OtherPlayer, OtherScore),
     (
@@ -257,20 +297,6 @@ decide_the_winner(Player, OtherPlayer, Winner) :-
             Winner = Player
         ;
             Winner = OtherPlayer
-    ).
-
-% congratulate(+Winner)
-% Displays a congratulatory message to the Winner
-congratulate(Winner) :-
+    ),
     player(Winner, WinnerPlayer),
-    player_score(Winner, Score),
-    format(' > The ~w won with a score of ~d. Congratulations!', [WinnerPlayer,Score]), nl.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Movimento Bot
-% choose_move(+GameState,+Player,+Level,-Move)
-% Bot random player. Makes a list of possible moves and select a random one
-choose_move(GameState, Player, 1, Row-Col):- 
-    valid_moves(GameState, Player, ListOfMoves), % direction_from_checker
-    random_member(Row-Col, ListOfMoves).
+    format(' > The ~w won with a score of ~d. Congratulations!', [WinnerPlayer, Score]), nl.

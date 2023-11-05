@@ -16,51 +16,102 @@
 % dynamic player_score(+Player, -Score)
 :- dynamic player_score/2.
 
-% board(+SizeOfBase,+Matrix)
+% board(+pieces,+Matrix)
 % Board structure
 % Board Small
-board(13, [
-    [empty, empty, empty, empty, empty, empty, notused, empty, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, empty, notused, notused, notused, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, notused, notused, notused, notused, notused, empty, empty, empty, empty],
-    [empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty],
-    [empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty],
-    [empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty],
-    [notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused]
+board(6, [
+    [empty, empty, empty, notused, empty, empty, empty],
+    [empty, empty, empty, notused, notused, empty, empty],
+    [empty, empty, notused, notused, notused, empty, empty]
 ]).
 
 % Board Medium
-board(17, [
-    [empty, empty, empty, empty, empty, empty, empty, empty, notused, empty, empty, empty, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, empty, empty, empty, notused, notused, notused, empty, empty, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty],
-    [empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty],
-    [empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty],
-    [empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty],
-    [notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused]
+board(15, [
+    [empty, empty, empty, notused, empty, empty, empty],
+    [empty, empty, empty, notused, notused, empty, empty],
+    [empty, empty, notused, notused, notused, empty, empty],
+    [empty, empty, notused, notused, notused, notused, empty],
+    [empty,notused, notused, notused, notused, notused, empty]
 ]).
 
+
 % Board Large
-board(21, [
-    [empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, notused, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, empty, empty, empty, empty, empty, notused, notused, notused, empty, empty, empty, empty, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty, empty],
-    [empty, empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty, empty],
-    [empty, empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty, empty],
-    [empty, empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty, empty],
-    [empty, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, empty],
-    [notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused, notused]
+board(28, [
+    [empty, empty, empty, notused, empty, empty, empty],
+    [empty, empty, empty, notused, notused, empty, empty],
+    [empty, empty, notused, notused, notused, empty, empty],
+    [empty, empty, notused, notused, notused, notused, empty],
+    [empty,notused, notused, notused, notused, notused, empty],
+    [empty, notused, notused, notused, notused, notused, notused],
+    [notused, notused, notused, notused, notused, notused, notused]
 ]).
 
 % board(+Cells, +Columns, +Rows)
-board(13,5,3).
-board(17,7,4).
-board(21,9,5).
+% Board structure
+board(6,7,3).
+board(15,7,5).
+board(28,7,7).
+
+
+% moves_from_neutral(+BoardSize, +NeutralPawnCoordinate, +PathCellList)
+%Predicate that presents a list with coordinates of cells that can be reached
+% in a given direction from a predefined cell, on a fixed size board
+
+% Board Size 3
+moves_from_neutral(3, 1-4, [2-4, 2-5, 3-3, 3-5]).
+moves_from_neutral(3, 2-4, [1-4, 2-5, 3-3, 3-4]).
+moves_from_neutral(3, 2-5, [1-4, 2-4, 3-4, 3-5]).
+moves_from_neutral(3, 3-3, [1-4, 2-4, 3-4, 3-5]).
+moves_from_neutral(3, 3-4, [2-4, 2-5, 3-3, 3-5]).
+moves_from_neutral(3, 3-5, [1-4, 2-5, 3-3, 3-4]).
+
+% Board Size 5
+moves_from_neutral(3, 1-4, [2-4, 2-5, 3-3, 3-5, 4-3, 4-6, 5-2, 5-6]).
+moves_from_neutral(3, 2-4, [1-4, 2-5, 3-3, 3-4, 4-3, 5-2, 4-5, 5-5]).
+moves_from_neutral(3, 2-5, [1-4, 2-4, 3-4, 3-5, 4-6, 5-6, 4-4, 5-3]).
+moves_from_neutral(3, 3-3, [1-4, 2-4, 3-4, 3-5, 4-3, 4-6, 4-4, 5-4]).
+moves_from_neutral(3, 3-4, [2-4, 2-5, 3-3, 3-5, 4-5, 5-5, 4-4, 5-3]).
+moves_from_neutral(3, 3-5, [1-4, 2-5, 3-3, 3-4, 4-6, 5-6, 4-5, 5-4]).
+moves_from_neutral(3, 4-3, [1-4, 2-4, 3-3, 5-2, 5-3, 4-4, 4-5, 4-6]).
+moves_from_neutral(3, 4-4, [4-3, 4-5, 4-6, 5-3, 5-4, 3-3, 3-4, 2-5]).
+moves_from_neutral(3, 4-5, [4-3, 4-4, 4-6, 5-4, 5-5, 3-4, 3-5, 2-4]).
+moves_from_neutral(3, 4-6, [4-3, 4-4, 4-5, 5-5, 5-6, 1-4, 2-5, 3-5]).
+moves_from_neutral(3, 5-2, [5-3, 5-4, 5-5, 5-6, 1-4, 2-4, 3-3, 4-3]).
+moves_from_neutral(3, 5-3, [5-2, 5-4, 5-5, 5-6, 4-3, 4-4, 2-5, 3-4]).
+moves_from_neutral(3, 5-4, [5-2, 5-3, 5-5, 5-6, 4-4, 4-5, 3-3, 3-5]).
+moves_from_neutral(3, 5-5, [5-2, 5-3, 5-4, 5-6, 4-5, 4-6, 3-4, 2-4]).
+moves_from_neutral(3, 5-6, [5-2, 5-3, 5-4, 5-5, 4-6, 3-5, 2-5, 1-4]).
+
+% Board Size 7
+moves_from_neutral(7, 1-4, [2-4, 2-5, 3-3, 3-5, 4-3, 4-6, 5-2, 5-6, 6-2, 6-7, 7-1, 7-7]).
+moves_from_neutral(7, 2-4, [1-4, 2-5, 3-3, 3-4, 4-3, 5-2, 4-5, 5-5, 6-2, 6-6, 7-1, 7-6]).
+moves_from_neutral(7, 2-5, [1-4, 2-4, 3-4, 3-5, 4-6, 5-6, 4-4, 5-3, 6-3, 6-7, 7-2, 7-7]).
+moves_from_neutral(7, 3-3, [1-4, 2-4, 3-4, 3-5, 4-3, 4-6, 4-4, 5-4, 6-2, 6-5, 7-1, 7-5]).
+moves_from_neutral(7, 3-4, [2-4, 2-5, 3-3, 3-5, 4-5, 5-5, 4-4, 5-3, 6-3, 6-6, 7-2, 7-6]).
+moves_from_neutral(7, 3-5, [1-4, 2-5, 3-3, 3-4, 4-6, 5-6, 4-5, 5-4, 6-4, 6-7, 7-3, 7-7]).
+moves_from_neutral(7, 4-3, [1-4, 2-4, 3-3, 5-2, 5-3, 4-4, 4-5, 4-6, 6-2, 6-4, 7-1, 7-4]).
+moves_from_neutral(7, 4-4, [4-3, 4-5, 4-6, 5-3, 5-4, 3-3, 3-4, 2-5, 6-3, 6-5, 7-2, 7-5]).
+moves_from_neutral(7, 4-5, [4-3, 4-4, 4-6, 5-4, 5-5, 3-4, 3-5, 2-4, 6-4, 6-6, 7-3, 7-6]).
+moves_from_neutral(7, 4-6, [4-3, 4-4, 4-5, 5-5, 5-6, 1-4, 2-5, 3-5, 6-5, 6-7, 7-4, 7-7]).
+moves_from_neutral(7, 5-2, [5-3, 5-4, 5-5, 5-6, 1-4, 2-4, 3-3, 4-3, 6-2, 6-3, 7-1, 7-3]).
+moves_from_neutral(7, 5-3, [5-2, 5-4, 5-5, 5-6, 4-3, 4-4, 2-5, 3-4, 6-3, 6-4, 7-2, 7-4]).
+moves_from_neutral(7, 5-4, [5-2, 5-3, 5-5, 5-6, 4-4, 4-5, 3-3, 3-5, 6-4, 6-5, 7-3, 7-5]).
+moves_from_neutral(7, 5-5, [5-2, 5-3, 5-4, 5-6, 4-5, 4-6, 3-4, 2-4, 6-5, 6-6, 7-4, 7-6]).
+moves_from_neutral(7, 5-6, [5-2, 5-3, 5-4, 5-5, 4-6, 3-5, 2-5, 1-4, 6-6, 6-7, 7-5, 7-7]).
+moves_from_neutral(7, 6-2, [6-3, 6-4, 6-5, 6-6, 6-7, 2-4, 3-3, 4-3, 5-2, 1-4, 7-1, 7-2]).
+moves_from_neutral(7, 6-3, [6-2, 6-4, 6-5, 6-6, 6-7, 7-2, 7-3, 5-2, 5-3, 4-4, 2-5, 3-4]).
+moves_from_neutral(7, 6-4, [6-2, 6-3, 6-5, 6-6, 6-7, 7-3, 7-4, 5-3, 5-4, 4-3, 4-5, 3-5]).
+moves_from_neutral(7, 6-5, [6-2, 6-3, 6-4, 6-6, 6-7, 7-4, 7-5, 5-4, 5-5, 4-4, 4-6, 3-3]).
+moves_from_neutral(7, 6-6, [6-2, 6-3, 6-4, 6-5, 6-7, 7-5, 7-6, 5-5, 5-6, 4-5, 3-4, 2-4]).
+moves_from_neutral(7, 6-7, [6-2, 6-3, 6-4, 6-5, 6-6, 7-6, 7-7, 5-6, 1-4, 4-6, 3-5, 2-5]).
+moves_from_neutral(7, 7-1, [7-2, 7-3, 7-4, 7-5, 7-6, 7-7, 1-4, 2-4, 3-3, 4-3, 5-2, 6-2]).
+moves_from_neutral(7, 7-2, [7-1, 7-3, 7-4, 7-5, 7-6, 7-7, 6-2, 6-3, 5-3, 3-4, 4-4, 2-5]).
+moves_from_neutral(7, 7-3, [7-1, 7-2, 7-4, 7-5, 7-6, 7-7, 6-3, 6-4, 5-4, 3-5, 4-5, 5-2]).
+moves_from_neutral(7, 7-4, [7-1, 7-2, 7-3, 7-5, 7-6, 7-7, 6-4, 6-5, 5-5, 4-3, 4-6, 5-3]).
+moves_from_neutral(7, 7-5, [7-1, 7-2, 7-3, 7-4, 7-6, 7-7, 6-5, 6-6, 5-6, 4-4, 3-3, 5-4]).
+moves_from_neutral(7, 7-6, [7-1, 7-2, 7-3, 7-4, 7-5, 7-7, 6-6, 6-7, 5-5, 4-5, 3-4, 2-4]).
+moves_from_neutral(7, 7-7, [7-1, 7-2, 7-3, 7-4, 7-5, 7-6, 6-7, 5-6, 4-6, 3-5, 2-5, 1-4]).
+
 
 % other_player(+CurrentPlayer,-NextPlayer)
 % Change player turn
@@ -144,5 +195,5 @@ display_player_turn(Player) :-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Lista de moves
-% direction_from_checker(+BoardSize, +neutral_pawn_coordinates, +PathCellList)
+% moves_from_neutral(+BoardSize, +neutral_pawn_coordinates, +PathCellList)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
