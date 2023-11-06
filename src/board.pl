@@ -125,7 +125,7 @@ symbol(n,' X ') :- !.  % neutral pawn
 % initial_state(+Size, -GameState)
 % Initializes the initial state of the game based on the given board size.
 initial_state(Size,[Board, _, MoveNumber]) :-
-    board(Size,Board).
+    board(Size,Board),
     NumberMove = 1.
 
 % display_column_numbering(+ColumnNumber, +TotalNumberOfColumns)

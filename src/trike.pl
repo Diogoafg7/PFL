@@ -13,13 +13,13 @@ play :-
 % game_cycle(+GameState)
 % Loop that keeps the game running
 game_cycle(GameState):-
-    is_over(GameState, Winner), !,
+    game_over(GameState, Winner), !,
     display_game(GameState),
     find_who_wins(GameState, Winner),
     show_winner(Winner).
 game_cycle(GameState):-
     display_game(GameState),
-    make_move(GameState, Move),
+    choose_move(GameState, Move),
     move(GameState, Move, NewGameState), !,
     game_cycle(NewGameState).
 
@@ -48,32 +48,32 @@ find_who_wins([Board, Player,_], Winner) :-
     total_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer),
     decide_the_winner(Player, OtherPlayer, Winner).
 
-% make_move(+GameState,-Move)
+% choose_move(+GameState,-Move)
 % A player chooses a move
-make_move([Board,Player,NumberMove], Row-Column) :-
+choose_move([Board,Player,NumberMove], Row-Column) :-
     \+difficulty_level(Player, _),
     repeat,
     get_move([Board,Player,NumberMove],Row-Column),
     validate_move([Board,Player,NumberMove], Row-Column), !.
-make_move([Board,Player,NumberMove], Move):-
+choose_move([Board,Player,NumberMove], Move):-
     difficulty(Player, Level),                  
-    make_move([Board,Player,NumberMove], Player, Level, Move), !. 
+    choose_move([Board,Player,NumberMove], Player, Level, Move), !. 
 
-% make_move(+GameState, +Player, +Level, -Move)
+% choose_move(+GameState, +Player, +Level, -Move)
 
 % Selects a random move for the computer
-make_move(GameState, Player, 1,  Row-Column):-
+choose_move(GameState, Player, 1,  Row-Column):-
     valid_moves(GameState, Player, ListOfMoves),
     random_member(Row-Column, ListOfMoves).
 
-% make_move(+GameState, +Player, +Level, -Move)
+% choose_move(+GameState, +Player, +Level, -Move)
 % Selects a greedy move for the computer
-make_move([Board,_,1], Player, 2, Row-Column) :-
+choose_move([Board,_,1], Player, 2, Row-Column) :-
     length(Board, Rows),
     board(_, Columns, Rows),
     Row is 1,
     Col is Columns // 2 + 1.
-make_move(GameState, Player, 2, Row-Column):-
+choose_move(GameState, Player, 2, Row-Column):-
 	valid_moves(GameState, Player, ListOfMoves), 
     other_player(Player, OtherPlayer),
     size_of_list_of_moves(ListOfMoves, Size),
@@ -88,7 +88,7 @@ make_move(GameState, Player, 2, Row-Column):-
                                 move(GameState, Coordinate, NewGameState),
                                 retract(player_score(Player,_)),
                                 asserta(player_score(Player, 1)), 
-                                value_of_board(NewGameState,Player, Value)
+                                value(NewGameState,Player, Value)
                                 ), Pairs),
     sort(Pairs, SortedPairs),
     last(SortedPairs, Max-_),
@@ -163,18 +163,10 @@ move([Board,Player,NumberMove], Row-Column, NewGameState):-
     NewGameState = [NewBoard,NewPlayer,NewMoveNumber].
 
 
-%  is_over(+GameState, -Winner)
-% Checks if the game has reached a ending state
-is_over([Board,Player,_] , Winner) :-
-    length(Board, Rows),
-    board(Size, _, Rows),
-    neutral_pawn_coordinates(NeutralRow-NeutralCol),!,
-    \+ at_least_one_notused(Board, Size, NeutralRow-NeutralCol),
-    find_who_wins([Board,Player,_], Winner).
 
-% value_of_board(+GameState, +Player, -Value)
-% Calculates the value_of_board of the current board for a specific player based on the position of the neutral pawn
-value_of_board([Board,_,_],Player, Value) :-
+% value(+GameState, +Player, -Value)
+% Calculates the value of the current board for a specific player based on the position of the neutral pawn
+value([Board,_,_],Player, Value) :-
     neutral_pawn_coordinates(NeutralRow, NeutralCol),
     length(Board, Rows),
     board(Size, _, Rows),
@@ -199,15 +191,13 @@ show_winner(Winner) :-
 
 
 
-
-
 % other_player(+CurrentPlayer,-NextPlayer)
 % Change player turn
 other_player(pl1, pl2).
 other_player(pl2, pl1).
 
 % valid_get_move_coordinate(+Value,-Max)
-% Checks if the entered value_of_board is between 1 and the maximum
+% Checks if the entered value is between 1 and the maximum
 valid_get_move_coordinate(Value, Max) :-
     integer(Value),
     Value >= 1,

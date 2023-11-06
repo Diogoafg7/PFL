@@ -143,3 +143,13 @@ game_setup([Board, Player, 1]) :-
     default_player_symbol,
     neutral_pawn_coordinates(Size),
     initial_state(Size, [Board, _, _]).
+
+
+%  game_over(+GameState, -Winner)
+% Checks if the game has reached a ending state
+game_over([Board,Player,_] , Winner) :-
+    length(Board, Rows),
+    board(Size, _, Rows),
+    neutral_pawn_coordinates(NeutralRow-NeutralCol),!,
+    \+ at_least_one_notused(Board, Size, NeutralRow-NeutralCol),
+    find_who_wins([Board,Player,_], Winner).
