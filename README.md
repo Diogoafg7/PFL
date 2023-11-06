@@ -8,14 +8,17 @@ Grupo Trike_7:
 || Rafael Ferreira da Costa Silva Valquaresma     | [up202104805] |50%           |
 
 
-## Instalação e Execução
+## Instruções de Instalação do Jogo Trike
 
-Para instalar o jogo Trike primeiro é necessário fazer o download dos ficheiros presentes em PFL_TP1_T10_Trike2.zip e descompactá-los. Dentro do diretório src consulte o ficheiro trike.pl através da linha de comandos ou pela própria UI do Sicstus Prolog 4.8.
-O jogo inicia-se com o predicado play/0
+Para instalar o jogo Trike, siga as etapas abaixo:
 
-```prolog
-?- play.
-```
+1. Faça o download dos arquivos contidos no arquivo [PFL_TP1_T10_Trike2.zip](link_para_o_arquivo.zip) e descompacte-os em um diretório de sua escolha.
+
+2. Navegue até a pasta "src" no diretório onde os arquivos foram descompactados.
+
+3. Abra o arquivo "trike.pl" usando o Sicstus Prolog 4.8. Isso pode ser feito através da linha de comando ou pela interface gráfica do Sicstus Prolog.
+
+4. Inicie o jogo executando o predicado "play/0" no Sicstus Prolog.
 
 ## Descrição do Jogo
 
