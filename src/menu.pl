@@ -114,9 +114,9 @@ default_player_symbol :-
     asserta(player_symbol(pl1, W)),
     asserta(player_symbol(pl2, B)).
 
-% neutral_pawn_coordinates(+Size)
+% neutral_pawn_coordinates_size(+Size)
 % Initializes the neutral pawn coordinates for the specified board size
-neutral_pawn_coordinates(Size) :-
+neutral_pawn_coordinates_size(Size) :-
     board(Size, Cols, Rows),
     asserta(neutral_pawn_coordinates(Row-Column)).
 
@@ -141,5 +141,5 @@ game_setup([Board, Player, 1]) :-
     first_player(Player),
     board_size(Size),
     default_player_symbol,
-    neutral_pawn_coordinates(Size),
+    neutral_pawn_coordinates_size(Size),
     initial_state(Size, [Board, _, _]).

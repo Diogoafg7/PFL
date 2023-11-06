@@ -183,6 +183,17 @@ value_of_board([Board,_,_],Player, Value) :-
     player_score(Player, Score),
     Value is Score.  
 
+% decide_the_winner(+Player, +OtherPlayer, -Winner)
+% Determines the winner based on the players scores.
+decide_the_winner(Player, OtherPlayer, Winner) :-
+    player_score(Player, Score),
+    player_score(OtherPlayer, OtherScore),
+    (
+        Score > OtherScore ->
+            Winner = Player
+        ;
+            Winner = OtherPlayer
+    ).
 
 
 % show_winner(+Winner)
