@@ -1,5 +1,3 @@
-:- use_module(library(lists)).
-:- use_module(library(random)).
 :- use_module(library(system)).
 :- consult(menu).
 :- consult(board).
@@ -7,7 +5,7 @@
 
 % Starts the game and clears data when it ends 
 play :-
-    write('\e[H\e[2J'),
+    clear_console,
     game_setup(GameState),!,
     game_cycle(GameState),
     clear_data.
@@ -15,76 +13,74 @@ play :-
 % game_cycle(+GameState)
 % Loop that keeps the game running
 game_cycle(GameState):-
-    game_over(GameState), !,
+    is_over(GameState, Winner), !,
     display_game(GameState),
-    show_winner(player1, player2).
+    find_who_wins(GameState, Winner),
+    show_winner(Winner).
 game_cycle(GameState):-
     display_game(GameState),
-    print_turn(GameState),
-    choose_move(GameState, Move),
+    make_move(GameState, Move),
     move(GameState, Move, NewGameState), !,
     game_cycle(NewGameState).
 
 % display_game(+GameState)
 % Prints the board
 display_game([Board,_,_]) :-
+    sleep(1),
     clear_console,
-    length(Board, Size),
-    display_column_numbering(1, Size),
-    display_line(Size),
-        display_rows(Board, 1, Size, Size).
+    length(Board, Rows),
+    board(_,Columns, Rows),
+    display_line(Columns),
+    display_column_numbering(1, Columns),nl,
+    display_line(Columns),
+    display_rows(Board, 1, Rows, Columns),
+    display_player_turn(Player), nl,nl.
 
-% print_turn(+GameState)
-% Prints a message declaring whose turn it is
-print_turn([_, Player, _]):-
-    name_of(Player, Name),
-    format('Player ~a, is your turn!\n', [Name]), !.
-
-
-% find_out_winner(+GameState, -Winner)
-% Finds the winner given the game state
-find_out_winner([Board, Player,_], Winner) :-
+% find_who_wins(+GameState, -Winner)
+% Check if there is a winner in the current state of the game
+find_who_wins([Board, Player,_], Winner) :-
     neutral_pawn_coordinates(NeutralRow-NeutralCol),
     length(Board, Rows),
     board(Size, _, Rows),
     other_player(Player, OtherPlayer),
     asserta(player_score(Player, 1)),
     asserta(player_score(OtherPlayer, 0)),
-    calculate_total_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer),
+    total_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer),
     decide_the_winner(Player, OtherPlayer, Winner).
 
-% choose_move(+GameState,-Move)
-% A human player chooses a move
-choose_move([Board,Player,MoveNumber], Row-Col) :-
+% make_move(+GameState,-Move)
+% A player chooses a move
+make_move([Board,Player,NumberMove], Row-Column) :-
     \+difficulty_level(Player, _),
     repeat,
-    get_move([Board,Player,MoveNumber],Row-Col),
-    validate_move([Board,Player,MoveNumber], Row-Col), !.
-choose_move([Board,Player,MoveNumber], Move):-
+    get_move([Board,Player,NumberMove],Row-Column),
+    validate_move([Board,Player,NumberMove], Row-Column), !.
+make_move([Board,Player,NumberMove], Move):-
     difficulty(Player, Level),                  
-    choose_move([Board,Player,MoveNumber], Player, Level, Move), !. 
+    make_move([Board,Player,NumberMove], Player, Level, Move), !. 
 
-% choose_move(+GameState, +Player, +Level, -Move)
+% make_move(+GameState, +Player, +Level, -Move)
+
 % Selects a random move for the computer
-choose_move(GameState, Player, 1,  Row-Col):-
+make_move(GameState, Player, 1,  Row-Column):-
     valid_moves(GameState, Player, ListOfMoves),
-    random_member(Row-Col, ListOfMoves).
+    random_member(Row-Column, ListOfMoves).
 
-% choose_move(+GameState, +Player, +Level, -Move)
+% make_move(+GameState, +Player, +Level, -Move)
 % Selects a greedy move for the computer
-choose_move([Board,_,1], Player, 2, Row-Col) :-
+make_move([Board,_,1], Player, 2, Row-Column) :-
     length(Board, Rows),
     board(_, Columns, Rows),
     Row is 1,
     Col is Columns // 2 + 1.
-choose_move(GameState, Player, 2, Row-Col):-
+make_move(GameState, Player, 2, Row-Column):-
 	valid_moves(GameState, Player, ListOfMoves), 
     other_player(Player, OtherPlayer),
-    check_ListOfMoves_Size(ListOfMoves, Size),
+    size_of_list_of_moves(ListOfMoves, Size),
     Size == 1 ->
-        ListOfMoves = [Row-Col|_]
+        ListOfMoves = [Row-Column|_]
     ;
-    check_possibility_of_winning(GameState, Player, OtherPlayer, ListOfMoves, Row-Col, Return),
+    is_possible_win(GameState, Player, OtherPlayer, ListOfMoves, Row-Column, Return),
     Return == break ->
         true
     ;
@@ -92,95 +88,135 @@ choose_move(GameState, Player, 2, Row-Col):-
                                 move(GameState, Coordinate, NewGameState),
                                 retract(player_score(Player,_)),
                                 asserta(player_score(Player, 1)), 
-                                value(NewGameState,Player, Value)
+                                value_of_board(NewGameState,Player, Value)
                                 ), Pairs),
     sort(Pairs, SortedPairs),
     last(SortedPairs, Max-_),
     findall(Coordinates, member(Max-Coordinates, SortedPairs), MaxCoordinates),
-    random_member(Row-Col, MaxCoordinates).
+    random_member(Row-Column, MaxCoordinates).
 
 % valid_moves(+GameState, +Player, -ListOfMoves)
 % Calculates a list of available moves for the current game state.
 valid_moves(GameState, _, ListOfMoves):-
-    findall(Row-Col, validate_move(GameState,Row-Col),ListOfMoves),
+    findall(Row-Column, validate_move(GameState,Row-Column),ListOfMoves),
     \+length(ListOfMoves, 0), !.
 valid_moves(GameState, Player, ListOfMoves):-
-    [Board,Player,MoveNumber] = GameState,
-    findall(Row-Col, validate_move([Board,Player,MoveNumber],Row-Col),ListOfMoves).
+    [Board,Player,NumberMove] = GameState,
+    findall(Row-Column, validate_move([Board,Player,NumberMove],Row-Column),ListOfMoves).
 
-% get_option(+Min,+Max,+Context,-Value)
-% Unifies Value with the value given by user input between Min and Max when asked about Context
-get_option(Min,Max,Context,Value):-
-    format('~a between ~d and ~d: ', [Context, Min, Max]),
+get_move([_, _, 2], _-_).
+get_move([Board, _, _], Row-Column) :-
+    length(Board, Rows),
+    board(_, Columns, Rows),
     repeat,
-    read_number(Value),
-    between(Min, Max, Value), !.
+    get_valid_coordinate('row', Rows, TempRow, Row),
+    get_valid_coordinate('column', Columns, TempCol, Col),
+    validate_move([Board,Player,NumberMove], Row-Column), !.
 
-% get_move(+Board,-Coordinate)
-% Unifies Coordinate with a valid coordinate given by input within the Board
-get_move(Board, Col1-Row1-Col2-Row2):-
-    length(Board, Size),
-    get_option(1, Size, 'Origin column', Col1),
-    get_option(1, Size, 'Origin row', Row1),
-    get_option(1, Size, 'Destination column', Col2),
-    get_option(1, Size, 'Destination row', Row2),
-    validate_move([Board,Player,MoveNumber], Row-Col), !.
+% get_valid_coordinate(+Type, +Max, -TempCoord, -Coord)
+% Gets a valid coordinate from the user
+get_valid_coordinate(Type, Max, TempCoord, Coord) :-
+    format('Select a ~w between 1 and ~d: ', [Type, Max]),
+    read(TempCoord),
+    (valid_get_move_coordinate(TempCoord, Max) -> Coord = TempCoord
+    ; write('Invalid ~w. Please choose a valid ~w.', [Type, Type]), nl, fail).
+    
 
 % validate_move(+GameState,-Coordinate)
 % Validates that the entered coordinates correspond to a valid position for inserting a checker
-validate_move([Board, _, 1], Row-Col) :-
-    is_cell_empty(Board, Row-Col).
+validate_move([Board, _, 1], Row-Column) :-
+    is_cell_empty(Board, Row-Column).
 validate_move([_,_,2],_-_) :-true.
-validate_move([Board, _, 1], Row-Col) :-
-    \+ is_cell_empty(Board, Row-Col),nl,
+validate_move([Board, _, 1], Row-Column) :-
+    \+ is_cell_empty(Board, Row-Column),nl,
     write('Invalid cell chosen. The cell has to be empty, in a valid direction and the path from the neutral pawn'),nl,
     write('to the cell choosen cannot be obstructed. Please choose a valid cell!'),nl,nl,
     fail.
-validate_move([Board,_,_], Row-Col) :- 
-    is_cell_empty(Board, Row-Col),
-    is_valid_direction_not_obstructed(Board, Row, Col).   
+validate_move([Board,_,_], Row-Column) :- 
+    is_cell_empty(Board, Row-Column),
+    is_not_obstructed_and_valid(Board, Row, Col).   
 
 % move(+GameState, +Move, -NewGameState)
 % Moves a piece
-move([Board,Player,1], Row-Col, NewGameState) :-
-    put_neutral_pawn(Board, Row-Col, NewBoard),
+move([Board,Player,1], Row-Column, NewGameState) :-
+    place_neutral(Board, Row-Column, NewBoard),
     other_player(Player, NewPlayer),
     NewMoveNumber is 2,
     NewGameState = [NewBoard,NewPlayer,NewMoveNumber].
 move([Board,Player,2],_-_,NewGameState) :-
     swap_sides_decision(Choice),
     Choice = 'y' ->
-        write('You chose to swap sides!'), nl,
+        write('You chose to swap pieces!'), nl,
         swap_sides,
         other_player(Player, NextPlayer),
         NewGameState = [Board,NextPlayer,3]
     ;
-        write('You chose not to swap sides. Proceed with the next move.'), nl,
+        write('You chose not to swap pieces. Proceed with the next move.'), nl,
         NewGameState = [Board,Player,3].   
-move([Board,Player,MoveNumber], Row-Col, NewGameState):-                       
+move([Board,Player,NumberMove], Row-Column, NewGameState):-                       
     other_player(Player, NewPlayer),
-    player_checker(NewPlayer, Checker),
+    player_symbol(NewPlayer, Checker),
     neutral_pawn_coordinates(NeutralRow-NeutralCol),
     replace_neutral_pawn(Board, NeutralRow-NeutralCol, Checker, NewBoard1),
-    put_neutral_pawn(NewBoard1, Row-Col, NewBoard),
-    NewMoveNumber is MoveNumber + 1,
+    place_neutral(NewBoard1, Row-Column, NewBoard),
+    NewMoveNumber is NumberMove + 1,
     NewGameState = [NewBoard,NewPlayer,NewMoveNumber].
+
+
+%  is_over(+GameState, -Winner)
+% Checks if the game has reached a ending state
+is_over([Board,Player,_] , Winner) :-
+    length(Board, Rows),
+    board(Size, _, Rows),
+    neutral_pawn_coordinates(NeutralRow-NeutralCol),!,
+    \+ at_least_one_notused(Board, Size, NeutralRow-NeutralCol),
+    find_who_wins([Board,Player,_], Winner).
+
+% value_of_board(+GameState, +Player, -Value)
+% Calculates the value_of_board of the current board for a specific player based on the position of the neutral pawn
+value_of_board([Board,_,_],Player, Value) :-
+    neutral_pawn_coordinates(NeutralRow, NeutralCol),
+    length(Board, Rows),
+    board(Size, _, Rows),
+    other_player(Player,OtherPlayer),
+    preview_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer),
+    player_score(Player, Score),
+    Value is Score.  
+
+
+
+% show_winner(+Winner)
+% Displays the winner of the game
+show_winner(Winner) :-
+    player(Winner, WinnerPlayer),
+    player_score(Winner, Score),
+    format("~a wins with ~d points!",[WinnerPlayer,Score]).
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Auxiliary Rules and Predicates
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+
+
+
+% other_player(+CurrentPlayer,-NextPlayer)
+% Change player turn
+other_player(pl1, pl2).
+other_player(pl2, pl1).
+
 % valid_get_move_coordinate(+Value,-Max)
-% Checks if the entered value is between 1 and the maximum
+% Checks if the entered value_of_board is between 1 and the maximum
 valid_get_move_coordinate(Value, Max) :-
     integer(Value),
     Value >= 1,
     Value =< Max.
 
 % set_neutral_pawn_coordinate(-Coordinate)
-set_neutral_pawn_coordinate(Row-Col) :-
+set_neutral_pawn_coordinate(Row-Column) :-
     retractall(neutral_pawn_coordinates(_)),
-    asserta(neutral_pawn_coordinates(Row-Col)).
+    asserta(neutral_pawn_coordinates(Row-Column)).
 
 % swap_sides_decision(+Choice)
 % Ask the player if he wants to switch sides and save the answer
@@ -201,92 +237,92 @@ swap_sides_decision(Choice) :-
 % swap_side(+CurrentPlayer)
 % Swap the symbols that represent each player
 swap_sides :-
-    retractall(player_checker(_,_)),
-    asserta(player_checker(player1, W)),
-    asserta(player_checker(player2, B)).
+    retractall(player_symbol(_,_)),
+    asserta(player_symbol(pl1, W)),
+    asserta(player_symbol(pl2, B)).
 
 % is_cell(+Board, -Row, -Col)
 % Checks whether the position with the respective coordinates is a cell
-is_cell_empty(Board, Row-Col) :-
+is_cell_empty(Board, Row-Column) :-
     nth1(Row, Board, RowList), 
     nth1(Col, RowList, cell).
 
-% is_valid_direction_not_obstructed(+Board, +Row, +Col)
-% Validates if the direction is valid and not obstructed.
-is_valid_direction_not_obstructed(Board, Row, Col) :-
+% is_not_obstructed_and_valid(+Board, +Row, +Col)
+% Checks if there are no pieces in the way of moving and if it is on the board and it is a possible move
+is_not_obstructed_and_valid(Board, Row, Col) :-
     length(Board, Rows),
     board(Size,_,Rows),
     neutral_pawn_coordinates(NeutralRow-NeutralCol),
     moves_from_neutral(Size, NeutralRow-NeutralCol, PathList),
-    memberchk(Row-Col, PathList), !,
-    is_not_obstructed(Board, Row-Col, PathList).
+    memberchk(Row-Column, PathList), !,
+    not_obstructed(Board, Row-Column, PathList).
 
-% is_not_obstructed(+Board, +Row-Col, +PathList)
-% Checks whether the path is not obstructed
-is_not_obstructed(_, Row-Col, [Row-Col|_]).
-is_not_obstructed(Board, Row-Col, [H|T]) :-
+% not_obstructed(+Board, +Row-Column, +PathList)
+% Checks if there are any pieces in the way of the move from the neutral pawn
+not_obstructed(_, Row-Column, [Row-Column|_]).
+not_obstructed(Board, Row-Column, [H|T]) :-
     is_cell_empty(Board, H),
-    is_not_obstructed(Board, Row-Col, T).
+    not_obstructed(Board, Row-Column, T).
 
-% put_neutral_pawn(+Board, +Row-Col, -NewBoard)
-% Places the neutral pawn at the given Row-Col position
-put_neutral_pawn(Board, Row-Col, NewBoard) :-
+% place_neutral(+Board, +Row-Column, -NewBoard)
+% Places the neutral pawn at the given row and column
+place_neutral(Board, Row-Column, NewBoard) :-
     RowIndex is Row - 1, ColIndex is Col - 1,
     nth0(RowIndex,Board,Line),
-    replace(ColIndex, n, Line, NewLine),
-    replace(RowIndex, NewLine, Board, NewBoard),
-    set_neutral_pawn_coordinate(Row-Col).
+    replace_element(ColIndex, n, Line, NewLine),
+    replace_element(RowIndex, NewLine, Board, NewBoard),
+    set_neutral_pawn_coordinate(Row-Column).
 
 % replace_neutral_pawn(+Board, +NeutralRow-NeutralCol, +Checker, -NewBoard)
 % Replaces the neutral pawn at the position NeutralRow-NeutralCol with the provided Checker
 replace_neutral_pawn(Board, NeutralRow-NeutralCol, Checker, NewBoard):-
     RowIndex is NeutralRow - 1, ColIndex is NeutralCol - 1,
     nth0(RowIndex,Board,Line),
-    replace(ColIndex, Checker, Line, NewLine),
-    replace(RowIndex, NewLine, Board, NewBoard). 
+    replace_element(ColIndex, Checker, Line, NewLine),
+    replace_element(RowIndex, NewLine, Board, NewBoard). 
 
-% replace(+Index,+Element,+List,-Result)
-% Unifies Result with the list resulting from replace the element at Index of List by Element
-replace(Index, Element, List, Result) :-
+% replace_element(+Index,+Element,+List,-Result)
+% Replace an element at Index in List by Element to get Result.
+replace_element(Index, Element, List, Result) :-
   nth0(Index, List, _, R),
   nth0(Index, Result, Element, R).
 
-% at_least_one_cell_empty(+Board, +Size, +NeutralRow-NeutralCol)
-% Checks for the presence of at least one empty cell around the neutral pawn
-at_least_one_cell_empty(Board, Size, NeutralRow-NeutralCol) :-
+% at_least_one_notused(+Board, +Size, +NeutralRow-NeutralCol)
+% Checks if there exists at least one notused in the board
+at_least_one_notused(Board, Size, NeutralRow-NeutralCol) :-
     moves_from_neutral(Size, NeutralRow-NeutralCol, List),
     nth1(1, List, FirstElement),
     is_cell_empty(Board, FirstElement), !.
 
-% calculate_total_score(+Board, +Size, +NeutralRow-NeutralCol, +Player, +OtherPlayer)
+% total_score(+Board, +Size, +NeutralRow-NeutralCol, +Player, +OtherPlayer)
 % Determines the total score
-calculate_total_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer) :-
-    first_elements_list(Size, NeutralRow-NeutralCol, FirstElementsList),
-    add_points_due_to_checker_type(Board, Player, OtherPlayer, FirstElementsList).
+total_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer) :-
+    list_of_first_elements(Size, NeutralRow-NeutralCol, FirstElementsList),
+    points_due_to_checker(Board, Player, OtherPlayer, FirstElementsList).
 
-% first_elements_list(+Size, +NeutralRow-NeutralCol, -FirstElementsList)
-% Retrieves the list of first elements from the 'moves_from_neutral' predicate for a given neutral position.
-first_elements_list(Size, NeutralRow-NeutralCol, FirstElementsList) :-
+% list_of_first_elements(+Size, +NeutralRow-NeutralCol, -FirstElementsList)
+% Returns a list containing all first elements of possible paths from the neutral pawn
+list_of_first_elements(Size, NeutralRow-NeutralCol, FirstElementsList) :-
     bagof(FirstElement, Args^(moves_from_neutral(Size, NeutralRow-NeutralCol, Args), nth1(1, Args, FirstElement)), FirstElementsList).
 
-% add_points_due_to_checker_type(+Board, +Player, +OtherPlayer, +List)
-% Adds points based on the checker type for a list of cell positions.
-add_points_due_to_checker_type(_,_,_,[]).
-add_points_due_to_checker_type(Board, Player, OtherPlayer, [H|T]) :-
-    check_checker_type(Board, H, Type),
-    add_score_due_to_type(Type, Player, OtherPlayer),
-    add_points_due_to_checker_type(Board, Player, OtherPlayer, T).
+% points_due_to_checker(+Board, +Player, +OtherPlayer, +List)
+% Add points due to checker type
+points_due_to_checker(_,_,_,[]).
+points_due_to_checker(Board, Player, OtherPlayer, [H|T]) :-
+    checker_type(Board, H, Type),
+    based_on_type_add_score(Type, Player, OtherPlayer),
+    points_due_to_checker(Board, Player, OtherPlayer, T).
 
-% check_checker_type(+Board, +Row-Col, -Type)
-% Retrieves the type of the checker at the specified Row and Column
-check_checker_type(Board, Row-Col, Type) :-
+% checker_type(+Board, +Row-Column, -Type)
+% Find out what kind of checker it is at the specified Row and Column
+checker_type(Board, Row-Column, Type) :-
     nth1(Row, Board, RowList), 
     nth1(Col, RowList, Type).
 
-% add_score_due_to_type(+Type, +Player, +OtherPlayer)
-% Adjusts the scores of a player based on the type of the checker
-add_score_due_to_type(Type, Player, OtherPlayer) :-
-    player_checker(Player, Checker),
+% based_on_type_add_score(+Type, +Player, +OtherPlayer)
+% Based on the type of checker, add appropriate scores for player or otherplayer
+based_on_type_add_score(Type, Player, OtherPlayer) :-
+    player_symbol(Player, Checker),
     player_score(Player, Score),
     player_score(OtherPlayer, OtherScore),
     (
@@ -300,59 +336,47 @@ add_score_due_to_type(Type, Player, OtherPlayer) :-
             asserta(player_score(OtherPlayer,NewOtherScore))       
     ).
 
-% show_winner(+Player, +OtherPlayer)
-% Determines the winner and displays a congratulatory message.
-show_winner(Player, OtherPlayer) :-
-    player_score(Player, Score),
-    player_score(OtherPlayer, OtherScore),
-    (
-        Score > OtherScore ->
-            Winner = Player
-        ;
-            Winner = OtherPlayer
-    ),
-    player(Winner, WinnerPlayer),
-    format(' > The ~w won with a score of ~d. Congratulations!', [WinnerPlayer, Score]), nl.
 
-% check_possibility_of_winning(+GameState, +Player, +OtherPlayer, +List, -Row-Col, -Return)
+
+% is_possible_win(+GameState, +Player, +OtherPlayer, +List, -Row-Column, -Return)
 % Checks the possibility of winning based on a list of coordinates of valid moves                                                                          
-check_possibility_of_winning(_,_,_,[],_,_).
-check_possibility_of_winning([Board, Player, _], Player, OtherPlayer, [H|T], Row-Col, Return) :-
+is_possible_win(_,_,_,[],_,_).
+is_possible_win([Board, Player, _], Player, OtherPlayer, [H|T], Row-Column, Return) :-
     length(Board, Rows),
     board(Size, _, Rows),
-    at_least_one_cell_empty(Board, Size, H),
+    at_least_one_notused(Board, Size, H),
     Return = continue.
-check_possibility_of_winning([Board, Player, _], Player, OtherPlayer, [H|T], Row-Col, Return) :-
+is_possible_win([Board, Player, _], Player, OtherPlayer, [H|T], Row-Column, Return) :-
     length(Board, Rows),
     board(Size, _, Rows),
-    \+ at_least_one_cell_empty(Board, Size, H),
+    \+ at_least_one_notused(Board, Size, H),
     asserta(player_score(Player,1)),
-    calculate_preview_score(Board, Size, H, Player, OtherPlayer),
+    preview_score(Board, Size, H, Player, OtherPlayer),
     player_score(Player, Score),
     Score > 0 ->
-        Row-Col = H,
+        Row-Column = H,
         Return = break
     ;
-    check_possibility_of_winning([Board, Player, _], Player, OtherPlayer, T, Row-Col, Return).
+    is_possible_win([Board, Player, _], Player, OtherPlayer, T, Row-Column, Return).
 
-% calculate_preview_score(+Board, +Size, +NeutralRow-NeutralCol, +Player, +OtherPlayer)
+% preview_score(+Board, +Size, +NeutralRow-NeutralCol, +Player, +OtherPlayer)
 % Calculates the score based on the game board and a specific coordinate
-calculate_preview_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer) :-
-    first_elements_list(Size, NeutralRow-NeutralCol, FirstElementsList),
-    add_subtract_due_to_checker_type(Board, Player, OtherPlayer, FirstElementsList).
+preview_score(Board, Size, NeutralRow-NeutralCol, Player, OtherPlayer) :-
+    list_of_first_elements(Size, NeutralRow-NeutralCol, FirstElementsList),
+    add_or_subtract_based_on_checker_type(Board, Player, OtherPlayer, FirstElementsList).
 
-% add_subtract_due_to_checker_type(+Board, +Player, +OtherPlayer, +List)
+% add_or_subtract_based_on_checker_type(+Board, +Player, +OtherPlayer, +List)
 % Adds or subtracts score based on the checker type encountered in the provided list
-add_subtract_due_to_checker_type(_,_,_,[]).
-add_subtract_due_to_checker_type(Board, Player, OtherPlayer, [H|T]) :-
-    check_checker_type(Board, H, Type),
-    add_subtract_score_due_to_type(Type, Player),
-    add_subtract_due_to_checker_type(Board, Player, OtherPlayer, T).
+add_or_subtract_based_on_checker_type(_,_,_,[]).
+add_or_subtract_based_on_checker_type(Board, Player, OtherPlayer, [H|T]) :-
+    checker_type(Board, H, Type),
+    add_or_sub_score_based_on_type(Type, Player),
+    add_or_subtract_based_on_checker_type(Board, Player, OtherPlayer, T).
 
-% add_subtract_score_due_to_type(+Type, +Player)
-% Adjusts the players score based on the type of the encountered checker
-add_subtract_score_due_to_type(Type, Player) :-
-    player_checker(Player, Checker),
+% add_or_sub_score_based_on_type(+Type, +Player)
+% Adds or subtracts score based on the type of checker found
+add_or_sub_score_based_on_type(Type, Player) :-
+    player_symbol(Player, Checker),
     player_score(Player, Score),
     (
         Type == Checker ->
@@ -365,7 +389,7 @@ add_subtract_score_due_to_type(Type, Player) :-
             asserta(player_score(OtherPlayer,NewOtherScore))       
     ).
 
-% check_ListOfMoves_Size(+ListOfMoves, +Size)
-% Gets a list size
-check_ListOfMoves_Size(ListOfMoves, Size):-
+% size_of_list_of_moves(+ListOfMoves, +Size)
+% Returns the number of moves that can be made
+size_of_list_of_moves(ListOfMoves, Size):-
     length(LisOfMoves, Size).

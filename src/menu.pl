@@ -1,6 +1,6 @@
 :- use_module(library(lists)).
 :- use_module(library(between)).
-:- use_module(library(system), [now/1]).
+:- use_module(library(system)).
 :- consult(utils).
 :- consult(board).
 
@@ -30,18 +30,18 @@ menu_option(1) :-
     write('Human vs Human\n'),
     write('Enter the name for Player 1:\n'),
     read(Player1Name),
-    asserta(player(player1, Player1Name)),
+    asserta(player(pl1, Player1Name)),
     write('Enter the name for Player 2:\n'),
     read(Player2Name),
-    asserta(player(player2, Player2Name)).
+    asserta(player(pl2, Player2Name)).
 
 menu_option(2) :-
     write('Human vs Computer\n'),
     write('Enter your name: '),
     read(Player1Name),
-    asserta(player(player1, Player1Name)),
-    asserta(player(player2, 'Computer')), 
-    computer_difficulty_level(player2).
+    asserta(player(pl1, Player1Name)),
+    asserta(player(pl2, 'Computer')), 
+    computer_difficulty_level(pl2).
 
 menu_option(3) :-
     write('Computer vs Computer\n'),
@@ -49,10 +49,10 @@ menu_option(3) :-
     read(Player1Name),
     write('Enter the name for Computer 2: '),
     read(Player2Name),
-    asserta(player(player1, Player1Name)),
-    asserta(player(player2, Player2Name)),
-    computer_difficulty_level(player1),
-    computer_difficulty_level(player2).
+    asserta(player(pl1, Player1Name)),
+    asserta(player(pl2, Player2Name)),
+    computer_difficulty_level(pl1),
+    computer_difficulty_level(pl2).
 
 menu_option(_Other) :-
     write('\nERROR: Invalid option!\n\n'),
@@ -60,20 +60,22 @@ menu_option(_Other) :-
     read(Input),
     menu_option(Input).
 
-% first_move_player(-Player)
+% first_player(-Player)
 % Allows the user to choose or selects the player who makes the first move randomly.
-first_move_player(Player) :-
+first_player(Player) :-
     write('Choose the player who will make the first move:\n'),
     write('1 - Player 1\n'),
     write('2 - Player 2\n'),
     write('3 - Random\n'),
     read(UserChoice),
     (
-        UserChoice = 1 -> Player = player1, write('Player 1 will make the first move.\n');
-        UserChoice = 2 -> Player = player2, write('Player 2 will make the first move.\n');
-        UserChoice = 3 -> random_member(Player, [player1, player2]), format('~w will make the first move.\n', [Player]);
+        player(pl1, Player1),
+        player(pl2, Player2),
+        UserChoice = 1 -> player(P, Player1), Player = P, write('Player 1 will make the first move.\n');
+        UserChoice = 2 -> player(P, Player2), Player = P, write('Player 2 will make the first move.\n');
+        UserChoice = 3 -> random_member(FirstPlayer, [Player1, Player2]), format('~w will make the first move.\n', [FirstPlayer]), player(P, FirstPlayer),Player = P;
         write('Invalid choice. Please select 1, 2, or 3.\n'),
-        first_move_player(Player)
+        first_player(Player)
     ).
 
 % board_size(-Size)
@@ -108,22 +110,15 @@ computer_difficulty_level(Computer) :-
     asserta(difficulty_level(Computer, Level)).
 
 % player symbol
-default_player_checker :-
-    asserta(player_checker(player1, W)),
-    asserta(player_checker(player2, B)).
+default_player_symbol :-
+    asserta(player_symbol(pl1, W)),
+    asserta(player_symbol(pl2, B)).
 
-set_default_neutral_pawn_coordinates(Size) :-
+% neutral_pawn_coordinates(+Size)
+% Initializes the neutral pawn coordinates for the specified board size
+neutral_pawn_coordinates(Size) :-
     board(Size, Cols, Rows),
-    asserta(neutral_pawn_coordinates(Rows-Cols)).
-
-
-%  game_over(+GameState, -Winner)
-% Checks if the game has reached a ending state
-game_over([Board,_,_]) :-
-    length(Board, Rows),
-    board(Size, _, Rows),
-    neutral_pawn_coordinates(NeutralRow-NeutralCol),!,
-    \+ at_least_one_cell_empty(Board, Size, NeutralRow-NeutralCol).
+    asserta(neutral_pawn_coordinates(Row-Column)).
 
 % game_setup(-GameState)
 % Prompts the user to select a game mode, handles the chosen mode, chooses the player who makes the first move,
@@ -138,13 +133,13 @@ game_setup([Board, Player, 1]) :-
         Input = 0 ->
             write('\nEnding the game. Thank you for playing Trike\n\n'),
             sleep(2),
-            write('\e[H\e[2J'),
+            clear_console
         ;
             (menu_option(Input), !)
     ),
     Input =\= 0, !,
-    first_move_player(Player),
+    first_player(Player),
     board_size(Size),
-    default_player_checker,
-    set_default_neutral_pawn_coordinates(Size),
+    default_player_symbol,
+    neutral_pawn_coordinates(Size),
     initial_state(Size, [Board, _, _]).

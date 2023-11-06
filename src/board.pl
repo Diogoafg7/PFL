@@ -7,10 +7,10 @@
 % dynamic difficulty(+Computer,-Level)
 :- dynamic difficulty_level/2.
 
-% dynamic player_checker(+Player,-Symbol)
-:- dynamic player_checker/2.
+% dynamic player_symbol(+Player,-Symbol)
+:- dynamic player_symbol/2.
 
-% dynamic neutral_pawn_coordinates(Row-Col)
+% dynamic neutral_pawn_coordinates(Row-Column)
 :- dynamic neutral_pawn_coordinates/1.
 
 % dynamic player_score(+Player, -Score)
@@ -111,28 +111,22 @@ moves_from_neutral(7, 7-5, [7-1, 7-2, 7-3, 7-4, 7-6, 7-7, 6-5, 6-6, 5-6, 4-4, 3-
 moves_from_neutral(7, 7-6, [7-1, 7-2, 7-3, 7-4, 7-5, 7-7, 6-6, 6-7, 5-5, 4-5, 3-4, 2-4]).
 moves_from_neutral(7, 7-7, [7-1, 7-2, 7-3, 7-4, 7-5, 7-6, 6-7, 5-6, 4-6, 3-5, 2-5, 1-4]).
 
-
-% other_player(+CurrentPlayer,-NextPlayer)
-% Change player turn
-other_player(player1, player2).
-other_player(player2, player1).
-
 % symbol(+Piece,-Symbol)
 % Translates the piece to a visible symbol on the board
 symbol(empty,'-|-') :- !.
-symbol(notused,'O') :- !.
-symbol(player1,'1') :- !.
-symbol(player2,'2') :- !.     
-symbol(W,'W') :- !.  % white player
-symbol(B,'B') :- !.  % black player
-symbol(n,'X') :- !.  % neutral pawn
+symbol(notused,'   ') :- !.
+symbol(pl1,' p1') :- !.
+symbol(pl2,' p2') :- !.     
+symbol(W,' W ') :- !.  % white player
+symbol(B,' B ') :- !.  % black player
+symbol(n,' X ') :- !.  % neutral pawn
+
 
 % initial_state(+Size, -GameState)
 % Initializes the initial state of the game based on the given board size.
-% GameState has the format "[Board , player , movenumber]"
-
-initial_state(Size,[Board,_,_]) :-
+initial_state(Size,[Board, _, MoveNumber]) :-
     board(Size,Board).
+    NumberMove = 1.
 
 % display_column_numbering(+ColumnNumber, +TotalNumberOfColumns)
 % Displays column numbering from 1 to Max on the game board.
@@ -190,7 +184,7 @@ display_elements([CurrentElement|Rest]) :-
 % Displays a message indicating the player who will make the next move
 display_player_turn(Player) :-
     player(Player, PlayerType),
-    player_checker(Player, Checker),
+    player_symbol(Player, Checker),
     symbol(Checker, Symbol),
-    format(' > ~w turn to play! Your checker is:~w', [PlayerType, Symbol]).
+    format(' > It is ~w\'s turn to play!', [PlayerType]).
 

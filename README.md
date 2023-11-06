@@ -51,7 +51,7 @@ Essas são as regras básicas do Trike. Para informações detalhadas e estraté
 ---
 
 ### Estrutura do Jogo
-O estado do jogo é representado por uma lista de três elementos: [Board, Player, MoveNumber], onde o `Board` é o tabuleiro atual, `Player` é o jogador da próxima jogada e `MoveNumber` é o número da jogada.
+O estado do jogo é representado por uma lista de três elementos: [Board, Player, NumberMove], onde o `Board` é o tabuleiro atual, `Player` é o jogador da próxima jogada e `NumberMove` é o número da jogada.
 
 ### Visualização do Jogo
 Antes de iniciar, o utilizador configura o jogo, escolhendo o modo e tamanho do tabuleiro. O jogador inicial é escolhido aleatoriamente. O tabuleiro é inicializado com `initial_state(+Size, -GameState)`.
@@ -63,13 +63,13 @@ O jogo funciona num ciclo contínuo até um jogador vencer. Os jogadores inserem
 O predicado `valid_moves(+GameState, +Player, -ListOfMoves)` guarda as coordenadas de movimentos válidos no estado atual do jogo usando `findall` e `validate_move`.
 
 ### Fim do Jogo
-`game_over(+GameState)` verifica se o jogo terminou com o peão neutro preso. `find_out_winner/2` determina o vencedor e `congratulate/1` anuncia o vencedor e a pontuação.
+`is_over(+GameState, -Winner)` verifica se o jogo terminou com o peão neutro preso. `find_who_wins/2` determina o vencedor e `show_winner/1` anuncia o vencedor e a pontuação.
 
 ### Avaliação do Estado do Jogo
-`value(+GameState, +Player, -Value)` avalia o tabuleiro com base no jogador, na posição do peão neutro e nas peças ao redor. As peças do jogador aumentam o `Value` em 1, e as do adversário diminuem em 1.
+`value_of_board(+GameState, +Player, -Value)` avalia o tabuleiro com base no jogador, na posição do peão neutro e nas peças ao redor. As peças do jogador aumentam o `Value` em 1, e as do adversário diminuem em 1.
 
 ### Jogadas do Computador
-O computador pode jogar de forma aleatória (método random) ou com estratégia (método greedy). O método greedy usa `value/3` e `check_possibility_of_winning/6` para determinar a melhor jogada. Se não houver uma jogada vencedora, escolhe com base no `Value`, priorizando posições com maior `Value`. Se múltiplas posições tiverem o mesmo `Value`, escolhe uma aleatoriamente.
+O computador pode jogar de forma aleatória (método random) ou com estratégia (método greedy). O método greedy usa `value_of_board/3` e `is_possible_win/6` para determinar a melhor jogada. Se não houver uma jogada vencedora, escolhe com base no `Value`, priorizando posições com maior `Value`. Se múltiplas posições tiverem o mesmo `Value`, escolhe uma aleatoriamente.
 
 ---
 
