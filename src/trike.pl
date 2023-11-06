@@ -129,8 +129,8 @@ validate_move([Board, _, 1], Row-Column) :-
 validate_move([_,_,2],_-_) :-true.
 validate_move([Board, _, 1], Row-Column) :-
     \+ is_cell_empty(Board, Row-Column),nl,
-    write('Invalid cell chosen. The cell has to be empty, in a valid direction and the path from the neutral pawn'),nl,
-    write('to the cell choosen cannot be obstructed. Please choose a valid cell!'),nl,nl,
+    write('Invalid cell chosen. Please choose a valid cell!'),nl,nl,
+    write('The cell has to be empty, in a valid direction and the path from the neutral pawn. Please choose a valid cell!'),nl,nl,
     fail.
 validate_move([Board,_,_], Row-Column) :- 
     is_cell_empty(Board, Row-Column),
