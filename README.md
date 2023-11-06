@@ -43,6 +43,8 @@ Trike é um jogo de estratégia abstrata e combinatória projetado para dois jog
 
 Essas são as regras básicas do Trike. Para informações detalhadas e estratégias avançadas, consulte o [website oficial do jogo](https://boardgamegeek.com/boardgame/307379/trike).
 
+---
+
 ### Estrutura do Jogo
 O estado do jogo é representado por uma lista de três elementos: [Board, Player, MoveNumber], onde o `Board` é o tabuleiro atual, `Player` é o jogador da próxima jogada e `MoveNumber` é o número da jogada.
 
