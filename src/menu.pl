@@ -25,16 +25,13 @@ menu:-
 
 % menu_option(+Input)
 % Based on the user input, executes a specific action corresponding to the chosen game mode or handles an invalid input.
-menu_option(0) :-
-    write('\nEnding the game. Thank you for playing Trike\n\n').
-
 
 menu_option(1) :-
     write('Human vs Human\n'),
-    write('Enter the name for Player 1: '),
+    write('Enter the name for Player 1:\n'),
     read(Player1Name),
     asserta(player(player1, Player1Name)),
-    write('Enter the name for Player 2: '),
+    write('Enter the name for Player 2:\n'),
     read(Player2Name),
     asserta(player(player2, Player2Name)).
 
@@ -139,7 +136,9 @@ game_setup([Board, Player, 1]) :-
     read(Input),
     (
         Input = 0 ->
-            write('\nEnding the game. Thank you for playing Trike\n\n')
+            write('\nEnding the game. Thank you for playing Trike\n\n'),
+            sleep(2),
+            write('\e[H\e[2J'),
         ;
             (menu_option(Input), !)
     ),
