@@ -6,6 +6,7 @@
 |Trike 7| Diogo Alexandre Figueiredo Gomes| [up201905991] |50%           |
 |Trike 7| Rafael Ferreira da Costa Silva Valquaresma     | [up202104805] |50%           |
 
+---
 
 ## Instruções de Instalação do Jogo Trike
 
@@ -19,9 +20,13 @@ Para instalar o jogo Trike, siga as etapas abaixo:
 
 4. Inicie o jogo executando o predicado "play/0" no Sicstus Prolog.
 
+---
+
 ## Descrição do Jogo
 
 Trike é um jogo de estratégia abstrata e combinatória projetado para dois jogadores. A dinâmica do jogo gira em torno da criação de armadilhas, da desmontagem das armadilhas do adversário e da manobra de uma peça compartilhada, conhecida como peão neutro, com o objetivo de alcançar a vitória.
+
+---
 
 ### Regras Principais:
 
@@ -65,6 +70,8 @@ O predicado `valid_moves(+GameState, +Player, -ListOfMoves)` guarda as coordenad
 
 ### Jogadas do Computador
 O computador pode jogar de forma aleatória (método random) ou com estratégia (método greedy). O método greedy usa `value/3` e `check_possibility_of_winning/6` para determinar a melhor jogada. Se não houver uma jogada vencedora, escolhe com base no `Value`, priorizando posições com maior `Value`. Se múltiplas posições tiverem o mesmo `Value`, escolhe uma aleatoriamente.
+
+---
 
 ## Conclusão
 
