@@ -122,11 +122,12 @@ set_default_neutral_pawn_coordinates(Size) :-
 
 %  game_over(+GameState, -Winner)
 % Checks if the game has reached a ending state
-game_over([Board,_,_]) :-
+game_over([Board,Player,_] , Winner) :-
     length(Board, Rows),
     board(Size, _, Rows),
     neutral_pawn_coordinates(NeutralRow-NeutralCol),!,
-    \+ at_least_one_cell_empty(Board, Size, NeutralRow-NeutralCol).
+    \+ at_least_one_cell_empty(Board, Size, NeutralRow-NeutralCol),
+    find_out_winner([Board,Player,_], Winner).
 
 % game_setup(-GameState)
 % Prompts the user to select a game mode, handles the chosen mode, chooses the player who makes the first move,
@@ -149,3 +150,7 @@ game_setup([Board, Player, 1]) :-
     default_player_checker,
     set_default_neutral_pawn_coordinates(Size),
     initial_state(Size, [Board, _, _]).
+    
+% name_of(+Player, -Name)
+% Find the Players name
+:- dynamic name_of/2.

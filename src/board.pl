@@ -20,18 +20,18 @@
 % Board structure
 % Board Small
 board(6, [
-    [empty, empty, empty, notused, empty, empty, empty],
-    [empty, empty, empty, notused, notused, empty, empty],
-    [empty, empty, notused, notused, notused, empty, empty]
+    [ empty,   notused,  empty],
+    [notused,  empty,  notused],
+    [notused, notused, notused]
 ]).
 
 % Board Medium
 board(15, [
-    [empty, empty, empty, notused, empty, empty, empty],
-    [empty, empty, empty, notused, notused, empty, empty],
-    [empty, empty, notused, notused, notused, empty, empty],
-    [empty, empty, notused, notused, notused, notused, empty],
-    [empty,notused, notused, notused, notused, notused, empty]
+    [empty, empty, empty, notused, empty],
+    [empty, empty, notused, notused, empty],
+    [empty, notused, notused, notused, empty],
+    [ notused, notused, notused, notused, empty],
+    [notused, notused, notused, notused, notused]
 ]).
 
 
@@ -60,29 +60,29 @@ board(28,7,7).
 % in a given direction from a predefined cell, on a fixed size board
 
 % Board Size 3
-moves_from_neutral(3, 1-4, [2-4, 2-5, 3-3, 3-5]).
-moves_from_neutral(3, 2-4, [1-4, 2-5, 3-3, 3-4]).
-moves_from_neutral(3, 2-5, [1-4, 2-4, 3-4, 3-5]).
-moves_from_neutral(3, 3-3, [1-4, 2-4, 3-4, 3-5]).
-moves_from_neutral(3, 3-4, [2-4, 2-5, 3-3, 3-5]).
-moves_from_neutral(3, 3-5, [1-4, 2-5, 3-3, 3-4]).
+moves_from_neutral(3, 1-2, [2-1, 2-3, 3-1, 3-3]).
+moves_from_neutral(3, 2-1, [1-2, 2-3, 3-1, 3-2]).
+moves_from_neutral(3, 2-3, [1-2, 2-1, 3-2, 3-3]).
+moves_from_neutral(3, 3-1, [1-2, 2-1, 3-2, 3-3]).
+moves_from_neutral(3, 3-2, [2-1, 2-3, 3-1, 3-3]).
+moves_from_neutral(3, 3-3, [1-2, 2-3, 3-1, 3-2]).
 
 % Board Size 5
-moves_from_neutral(3, 1-4, [2-4, 2-5, 3-3, 3-5, 4-3, 4-6, 5-2, 5-6]).
-moves_from_neutral(3, 2-4, [1-4, 2-5, 3-3, 3-4, 4-3, 5-2, 4-5, 5-5]).
-moves_from_neutral(3, 2-5, [1-4, 2-4, 3-4, 3-5, 4-6, 5-6, 4-4, 5-3]).
-moves_from_neutral(3, 3-3, [1-4, 2-4, 3-4, 3-5, 4-3, 4-6, 4-4, 5-4]).
-moves_from_neutral(3, 3-4, [2-4, 2-5, 3-3, 3-5, 4-5, 5-5, 4-4, 5-3]).
-moves_from_neutral(3, 3-5, [1-4, 2-5, 3-3, 3-4, 4-6, 5-6, 4-5, 5-4]).
-moves_from_neutral(3, 4-3, [1-4, 2-4, 3-3, 5-2, 5-3, 4-4, 4-5, 4-6]).
-moves_from_neutral(3, 4-4, [4-3, 4-5, 4-6, 5-3, 5-4, 3-3, 3-4, 2-5]).
-moves_from_neutral(3, 4-5, [4-3, 4-4, 4-6, 5-4, 5-5, 3-4, 3-5, 2-4]).
-moves_from_neutral(3, 4-6, [4-3, 4-4, 4-5, 5-5, 5-6, 1-4, 2-5, 3-5]).
-moves_from_neutral(3, 5-2, [5-3, 5-4, 5-5, 5-6, 1-4, 2-4, 3-3, 4-3]).
-moves_from_neutral(3, 5-3, [5-2, 5-4, 5-5, 5-6, 4-3, 4-4, 2-5, 3-4]).
-moves_from_neutral(3, 5-4, [5-2, 5-3, 5-5, 5-6, 4-4, 4-5, 3-3, 3-5]).
-moves_from_neutral(3, 5-5, [5-2, 5-3, 5-4, 5-6, 4-5, 4-6, 3-4, 2-4]).
-moves_from_neutral(3, 5-6, [5-2, 5-3, 5-4, 5-5, 4-6, 3-5, 2-5, 1-4]).
+moves_from_neutral(5, 1-4, [2-3, 2-4, 3-2, 3-4, 4-1, 4-4, 5-1, 5-5]).
+moves_from_neutral(5, 2-3, [1-4, 2-4, 3-2, 3-3, 4-1, 4-3, 5-1, 5-4]).
+moves_from_neutral(5, 2-4, [1-4, 2-3, 3-3, 3-4, 4-2, 4-4, 5-2, 5-5]).
+moves_from_neutral(5, 3-2, [1-4, 2-3, 3-3, 3-4, 4-1, 4-2, 5-1, 5-3]).
+moves_from_neutral(5, 3-3, [2-3, 2-4, 3-2, 3-4, 4-2, 5-2, 4-3, 5-4]).
+moves_from_neutral(5, 3-4, [1-4, 2-4, 3-2, 3-3, 4-3, 5-3, 4-4, 5-5]).
+moves_from_neutral(5, 4-1, [1-4, 2-3, 3-2, 5-1, 5-2, 4-2, 4-3, 4-4]).
+moves_from_neutral(5, 4-2, [4-1, 4-3, 4-4, 5-2, 5-3, 3-2, 3-3, 2-4]).
+moves_from_neutral(5, 4-3, [4-1, 4-2, 4-4, 5-3, 5-4, 3-3, 3-4, 2-3]).
+moves_from_neutral(5, 4-4, [4-1, 4-2, 4-3, 5-4, 5-5, 1-4, 2-4, 3-4]).
+moves_from_neutral(5, 5-1, [5-2, 5-3, 5-4, 5-5, 1-4, 2-3, 3-2, 4-1]).
+moves_from_neutral(5, 5-2, [5-1, 5-3, 5-4, 5-5, 4-1, 4-2, 2-4, 3-3]).
+moves_from_neutral(5, 5-3, [5-1, 5-2, 5-4, 5-5, 4-2, 4-3, 3-2, 3-4]).
+moves_from_neutral(5, 5-4, [5-1, 5-2, 5-3, 5-5, 4-3, 4-4, 3-3, 2-3]).
+moves_from_neutral(5, 5-5, [5-1, 5-2, 5-3, 5-4, 4-4, 3-4, 2-4, 1-4]).
 
 % Board Size 7
 moves_from_neutral(7, 1-4, [2-4, 2-5, 3-3, 3-5, 4-3, 4-6, 5-2, 5-6, 6-2, 6-7, 7-1, 7-7]).
@@ -123,7 +123,7 @@ other_player(player2, player1).
 % symbol(+Piece,-Symbol)
 % Translates the piece to a visible symbol on the board
 symbol(empty,'-|-') :- !.
-symbol(notused,'O') :- !.
+symbol(notused,' O ') :- !.
 symbol(player1,'1') :- !.
 symbol(player2,'2') :- !.     
 symbol(W,'W') :- !.  % white player
@@ -132,25 +132,31 @@ symbol(n,'X') :- !.  % neutral pawn
 
 % initial_state(+Size, -GameState)
 % Initializes the initial state of the game based on the given board size.
-% GameState has the format "[Board , player , movenumber]"
+% GameState has the format "[Board, Player, MoveNumber]".
 
-initial_state(Size,[Board,_,_]) :-
-    board(Size,Board).
+initial_state(Size, [Board, _, MoveNumber]) :-
+    % Generate the game board based on the size
+    board(Size, Board),
+
+
+    % Set the initial move number
+    MoveNumber = 1. % You can start with 1 or any other value as per your games rules
+
 
 % display_column_numbering(+ColumnNumber, +TotalNumberOfColumns)
 % Displays column numbering from 1 to Max on the game board.
 display_column_numbering(Max, Max):-
-    format('| ~d |', [Max]), !.
+    format('~d\n ', [Max]), !.
 display_column_numbering(1, Max):-
-    write('   | 1 '),
+    write('\n    1   '),
     display_column_numbering(2, Max), !.
 display_column_numbering(N, Max):-
     N > 9,
-    format('| ~d ', [N]),
+    format('~d  ', [N]),
     Next is N + 1,
     display_column_numbering(Next, Max).
 display_column_numbering(N, Max):-
-    format('| ~d ', [N]),
+    format('~d  ', [N]),
     Next is N + 1,
     display_column_numbering(Next, Max).
 

@@ -10,7 +10,7 @@
 
 % Starts the game and clears data when it ends 
 play :-
-    game_setup(GameState),!,
+    game_setup(GameState), !,
     game_cycle(GameState),
     clear_data.
 
@@ -18,7 +18,7 @@ play :-
 % game_cycle(+GameState)
 % Loop that keeps the game running
 game_cycle(GameState):-
-    game_over(GameState), !,
+    game_over(GameState, Winner), !,
     display_game(GameState),
     show_winner(player1, player2).
 game_cycle(GameState):-
@@ -35,7 +35,7 @@ display_game([Board,_,_]) :-
     length(Board, Size),
     display_column_numbering(1, Size),
     display_line(Size),
-        display_rows(Board, 1, Size, Size).
+    display_rows(Board, 1, Size, Size).
 
 % print_turn(+GameState)
 % Prints a message declaring whose turn it is
