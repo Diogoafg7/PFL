@@ -123,7 +123,7 @@ get_valid_coordinate(Type, Max, TempCoord, Coord) :-
     
 
 % validate_move(+GameState,-Coordinate)
-% Validates that the entered coordinates correspond to a valid position for inserting a checker
+% Check if a given coordinate is valid in the game state
 validate_move([Board, _, 1], Row-Column) :-
     is_cell_empty(Board, Row-Column).
 validate_move([_,_,2],_-_) :-true.
