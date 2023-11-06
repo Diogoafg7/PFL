@@ -2,9 +2,9 @@
 # TRIKE
 Grupo Trike_7:
 
-| Grupo | Nome                         | UP            | Contribuição |
-|------------   | ------------                 | ------------  |------------  |
-|Trike 7| Diogo Alexandre Figueiredo Gomes| [up201905991] |50%           |
+| Grupo || Nome                         | UP            | Contribuição |
+|------------   || ------------                 | ------------  |------------  |
+|Trike 7|| Diogo Alexandre Figueiredo Gomes| [up201905991] |50%           |
 | Rafael Ferreira da Costa Silva Valquaresma     | [up202104805] |50%           |
 
 
