@@ -123,14 +123,14 @@ get_valid_coordinate(Type, Max, TempCoord, Coord) :-
     
 
 % validate_move(+GameState,-Coordinate)
-% Validates that the entered coordinates correspond to a valid position for inserting a checker
+% Check if a given coordinate is valid in the game state
 validate_move([Board, _, 1], Row-Column) :-
     is_cell_empty(Board, Row-Column).
 validate_move([_,_,2],_-_) :-true.
 validate_move([Board, _, 1], Row-Column) :-
     \+ is_cell_empty(Board, Row-Column),nl,
-    write('Invalid cell chosen. The cell has to be empty, in a valid direction and the path from the neutral pawn'),nl,
-    write('to the cell choosen cannot be obstructed. Please choose a valid cell!'),nl,nl,
+    write('Invalid cell chosen. Please choose a valid cell!'),nl,nl,
+    write('The cell has to be empty, in a valid direction and the path from the neutral pawn. Please choose a valid cell!'),nl,nl,
     fail.
 validate_move([Board,_,_], Row-Column) :- 
     is_cell_empty(Board, Row-Column),
@@ -175,6 +175,17 @@ value([Board,_,_],Player, Value) :-
     player_score(Player, Score),
     Value is Score.  
 
+% decide_the_winner(+Player, +OtherPlayer, -Winner)
+% Determines the winner based on the players scores.
+decide_the_winner(Player, OtherPlayer, Winner) :-
+    player_score(Player, Score),
+    player_score(OtherPlayer, OtherScore),
+    (
+        Score > OtherScore ->
+            Winner = Player
+        ;
+            Winner = OtherPlayer
+    ).
 
 
 % show_winner(+Winner)
