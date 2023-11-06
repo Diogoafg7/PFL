@@ -43,6 +43,27 @@ Trike é um jogo de estratégia abstrata e combinatória projetado para dois jog
 
 Essas são as regras básicas do Trike. Para informações detalhadas e estratégias avançadas, consulte o [website oficial do jogo](https://boardgamegeek.com/boardgame/307379/trike).
 
+### Estrutura do Jogo
+O estado do jogo é representado por uma lista de três elementos: [Board, Player, MoveNumber], onde o `Board` é o tabuleiro atual, `Player` é o jogador da próxima jogada e `MoveNumber` é o número da jogada.
+
+### Visualização do Jogo
+Antes de iniciar, o utilizador configura o jogo, escolhendo o modo e tamanho do tabuleiro. O jogador inicial é escolhido aleatoriamente. O tabuleiro é inicializado com `initial_state(+Size, -GameState)`.
+
+### Validação e Execução de Movimentos
+O jogo funciona num ciclo contínuo até um jogador vencer. Os jogadores inserem coordenadas, que são validadas por `validate_move/2`. Um movimento é válido se as coordenadas estiverem vazias, numa direção reta em relação ao peão neutro e não estiverem obstruídas. O peão neutro é movido, e uma peça do jogador anterior é colocada na posição anterior do peão neutro.
+
+### Lista de Jogadas Válidas
+O predicado `valid_moves(+GameState, +Player, -ListOfMoves)` guarda as coordenadas de movimentos válidos no estado atual do jogo usando `findall` e `validate_move`.
+
+### Fim do Jogo
+`game_over(+GameState)` verifica se o jogo terminou com o peão neutro preso. `find_out_winner/2` determina o vencedor e `congratulate/1` anuncia o vencedor e a pontuação.
+
+### Avaliação do Estado do Jogo
+`value(+GameState, +Player, -Value)` avalia o tabuleiro com base no jogador, na posição do peão neutro e nas peças ao redor. As peças do jogador aumentam o `Value` em 1, e as do adversário diminuem em 1.
+
+### Jogadas do Computador
+O computador pode jogar de forma aleatória (método random) ou com estratégia (método greedy). O método greedy usa `value/3` e `check_possibility_of_winning/6` para determinar a melhor jogada. Se não houver uma jogada vencedora, escolhe com base no `Value`, priorizando posições com maior `Value`. Se múltiplas posições tiverem o mesmo `Value`, escolhe uma aleatoriamente.
+
 ## Conclusão
 
 Durante o desenvolvimento do projeto, enfrentámos desafios significativos ao utilizar a linguagem Prolog num jogo relativamente complexo. O jogo em questão tem um tabuleiro triangular e regras que envolvem movimentos com peças hexagonais, o que exigiu um conhecimento profundo da mecânica do jogo.
