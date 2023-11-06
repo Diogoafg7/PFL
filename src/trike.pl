@@ -5,10 +5,6 @@
 :- consult(board).
 :- consult(utils).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%% New updates %%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % Starts the game and clears data when it ends 
 play :-
     write('\e[H\e[2J'),
@@ -16,8 +12,6 @@ play :-
     game_cycle(GameState),
     clear_data.
     
-
-
 % game_cycle(+GameState)
 % Loop that keeps the game running
 game_cycle(GameState):-
