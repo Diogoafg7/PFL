@@ -1,6 +1,5 @@
 # PFL
 # TRIKE
-Grupo Trike_7:
 
 | Grupo | Nome                         | UP            | Contribuição |
 |------------   | ------------                 | ------------  |------------  |
@@ -43,3 +42,13 @@ Trike é um jogo de estratégia abstrata e combinatória projetado para dois jog
 ### Nota Importante:
 
 Essas são as regras básicas do Trike. Para informações detalhadas e estratégias avançadas, consulte o [website oficial do jogo](https://boardgamegeek.com/boardgame/307379/trike).
+
+## Conclusão
+
+Durante o desenvolvimento do projeto, enfrentámos desafios significativos ao utilizar a linguagem Prolog num jogo relativamente complexo. O jogo em questão tem um tabuleiro triangular e regras que envolvem movimentos com peças hexagonais, o que exigiu um conhecimento profundo da mecânica do jogo.
+
+Uma das principais dificuldades que enfrentámos foi a implementação do nível de movimento "greedy" para o computador. Dada a falta de familiaridade com o jogo, foi um desafio determinar as melhores estratégias para ganhar a partida.
+
+No entanto, apesar das dificuldades encontradas, acreditamos que este projeto teve um papel fundamental no desenvolvimento das nossas competências de programação em Prolog. Além disso, trabalhar num grupo pequeno permitiu-nos assumir responsabilidades individuais de uma forma mais significativa.
+
+Em suma, sentimos que este projeto representou uma oportunidade valiosa para aperfeiçoar as nossas competências técnicas, de colaboração e de resolução de problemas, enquanto explorávamos as complexidades da programação em Prolog.
