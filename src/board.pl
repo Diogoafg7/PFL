@@ -52,10 +52,7 @@ board(6,7,3).
 board(15,7,5).
 board(28,7,7).
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Lista de moves
 % moves_from_neutral(+BoardSize, +neutral_pawn_coordinates, +PathCellList)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Predicate that presents a list with coordinates of cells that can be reached
 % in a given direction from a predefined cell, on a fixed size board
 
