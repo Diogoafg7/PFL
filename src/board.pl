@@ -137,10 +137,7 @@ symbol(n,'X') :- !.  % neutral pawn
 initial_state(Size, [Board, _, MoveNumber]) :-
     % Generate the game board based on the size
     board(Size, Board),
-
-
-    % Set the initial move number
-    MoveNumber = 1. % You can start with 1 or any other value as per your games rules
+    MoveNumber = 1. % Set the initial move number
 
 
 % display_column_numbering(+ColumnNumber, +TotalNumberOfColumns)
