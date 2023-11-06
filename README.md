@@ -12,7 +12,7 @@
 
 Para instalar o jogo Trike, siga as etapas abaixo:
 
-1. Faça o download dos arquivos contidos no arquivo [PFL_Trike7.zip] e descompacte-os em um diretório de sua escolha.
+1. Faça o download dos arquivos contidos no arquivo [PFL_TP1_T10_Trike_7.zip] e descompacte-os em um diretório de sua escolha.
 
 2. Navegue até a pasta "src" no diretório onde os arquivos foram descompactados.
 
