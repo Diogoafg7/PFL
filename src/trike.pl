@@ -56,7 +56,7 @@ choose_move([Board,Player,NumberMove], Row-Column) :-
     get_move([Board,Player,NumberMove],Row-Column),
     validate_move([Board,Player,NumberMove], Row-Column), !.
 choose_move([Board,Player,NumberMove], Move):-
-    difficulty(Player, Level),                  
+    difficulty_level(Player, Level),                  
     choose_move([Board,Player,NumberMove], Player, Level, Move), !. 
 
 % choose_move(+GameState, +Player, +Level, -Move)
