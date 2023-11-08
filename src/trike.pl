@@ -196,11 +196,6 @@ show_winner(Winner) :-
     format("~a wins with ~d points!",[WinnerPlayer,Score]).
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Auxiliary Rules and Predicates
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 
 % other_player(+CurrentPlayer,-NextPlayer)
 % Change player turn
