@@ -4,7 +4,7 @@
 % dynamic player(+Player,-PlayerType)
 :- dynamic player/2.
 
-% dynamic difficulty(+Computer,-Level)
+% dynamic difficulty_level(+Computer,-Level)
 :- dynamic difficulty_level/2.
 
 % dynamic player_symbol(+Player,-Symbol)

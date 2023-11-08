@@ -73,7 +73,7 @@ first_player(Player) :-
         player(pl2, Player2),
         UserChoice = 1 -> player(P, Player1), Player = P, write('Player 1 will make the first move.\n');
         UserChoice = 2 -> player(P, Player2), Player = P, write('Player 2 will make the first move.\n');
-        UserChoice = 3 -> random_member(FirstPlayer, [Player1, Player2]), format('~w will make the first move.\n', [FirstPlayer]), player(P, FirstPlayer),Player = P;
+        UserChoice = 3 -> random_member(FirstPlayer, [Player1, Player2]), player(P, FirstPlayer),Player = P, format('~w will make the first move.\n', [FirstPlayer]);
         write('Invalid choice. Please select 1, 2, or 3.\n'),
         first_player(Player)
     ).
